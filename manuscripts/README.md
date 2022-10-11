@@ -1,1 +1,1 @@
-### This folder contains files associated with the WASHB-sep-season manuscript.
+### This folder contains files associated with the WASHB-sep-season manuscripts.
