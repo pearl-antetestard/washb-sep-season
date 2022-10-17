@@ -14,17 +14,17 @@ rm(list=ls(all=TRUE))
 
 library(here)
 here::here()
-source(here::here("manuscripts/2-initial-analysis/R", "0-config.R"))
+source(here::here("2-initial-analysis/R", "0-config.R"))
 
 # Read csv files
 
-df_1 <- read_csv(file = here::here("manuscripts", "1-data", "0-untouched",
+df_1 <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-enrol-public.csv"))
 
-df_2 <- read_csv(file = here::here("manuscripts", "1-data", "0-untouched",
+df_2 <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-tr-public.csv"))
 
-df_3 <- read_csv(file = here::here("manuscripts", "1-data", "0-untouched",
+df_3 <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-diar-public.csv"))
 
 
@@ -60,5 +60,5 @@ ad <- (df %>%
 
 # Export dataframe as RDS
 
-saveRDS(ad, here::here("manuscripts", "1-data", "2-final",
+saveRDS(ad, here::here("1-data", "2-final",
                       "enrol_diar_tr_formatted.rds"))
