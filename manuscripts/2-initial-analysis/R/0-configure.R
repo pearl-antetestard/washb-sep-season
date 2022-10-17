@@ -35,7 +35,6 @@ source(file = here::here("manuscripts", "2-initial-analysis", "R",
 # Section 2 ##################
 ##############################
 
-
 # Variables needed for the function asset_PCA
 
 ## With WASH-related variables 
