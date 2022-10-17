@@ -1,1 +1,7 @@
-### This folder contains files associated with the WASHB-sep-season manuscripts.
+### WASH interventions and child diarrhea in Bangladesh: estimates of effect modification by season and socioeconomic position in a cluster randomized trial
+
+## Main contents
+
+### The main R files:
+
+
