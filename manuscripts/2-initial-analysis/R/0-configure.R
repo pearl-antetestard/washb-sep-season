@@ -16,7 +16,6 @@ rm(list=ls(all=TRUE))
 # Packages and function
 
 library(tidyverse)
-library(here)
 library(psych)
 library(plyr)
 library(Rfast)
@@ -36,35 +35,6 @@ source(file = here::here("manuscripts", "2-initial-analysis", "R",
 # Section 2 ##################
 ##############################
 
-# Read csv files
-
-df_1 <- read_csv(file = here::here("manuscripts", "1-data", "0-untouched",
-                                   "washb-bangladesh-enrol-public.csv"))
-
-df_2 <- read_csv(file = here::here("manuscripts", "1-data", "0-untouched",
-                                   "washb-bangladesh-tr-public.csv"))
-
-df_3 <- read_csv(file = here::here("manuscripts", "1-data", "0-untouched",
-                                   "washb-bangladesh-diar-public.csv"))
-
-##############################
-# Section 3 ##################
-##############################
-
-# Join dataframes
-
-df <- inner_join(df_1, df_2, by=c("clusterid","block"))
-df <- inner_join(df, df_3, by=c("clusterid","block","dataid"))
-
-# Export dataframe as RDS
-
-
-
-scipen=999 # removes scientific notation
-
-##############################
-# Section 4 ##################
-##############################
 
 # Variables needed for the function asset_PCA
 
