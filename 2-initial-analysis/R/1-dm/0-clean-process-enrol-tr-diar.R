@@ -58,6 +58,19 @@ ad <- (df %>%
          filter(tr!="Sanitation") %>%
          filter(tr!="Handwashing"))
 
+##############################
+# Section 4 ##################
+##############################
+
+# Recoding variables
+
+df_recoded <- df %>%
+  mutate(tr_comb = ifelse(tr == "Nutrition + WSH" |
+                            tr ==  "WSH", 1,
+                          ifelse(tr == "Control", 0, NA)),
+         treat = as.factor(tr_comb))
+table(df_recoded$tr_comb, useNA = "always")
+
 # Export dataframe as RDS
 
 saveRDS(ad, here::here("1-data", "2-final",
