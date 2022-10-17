@@ -14,7 +14,7 @@ rm(list=ls(all=TRUE))
 
 library(here)
 here::here()
-source(here::here("manuscripts/2-initial-analysis/R", "0-configure.R"))
+source(here::here("manuscripts/2-initial-analysis/R", "0-config.R"))
 
 # Read csv files
 
