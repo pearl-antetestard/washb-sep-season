@@ -24,6 +24,7 @@ library(dplyr)
 library(survival)
 library(furniture)
 library(boot)
+library(labelled)
 library(table1)
 
 here::here()
