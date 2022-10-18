@@ -64,14 +64,25 @@ ad <- (df %>%
 
 # Recoding variables
 
-df_recoded <- df %>%
+df_recoded <- ad %>%
   mutate(tr_comb = ifelse(tr == "Nutrition + WSH" |
                             tr ==  "WSH", 1,
                           ifelse(tr == "Control", 0, NA)),
-         treat = as.factor(tr_comb))
+         tr_comb = as.factor(tr_comb),
+         monsoon = ifelse(svy == 1 &
+                            svyweek.x >= 22 & # http://www.week-number.net/calendar-with-week-numbers-2015.html
+                            svyweek.x <= 39, 1,
+                          ifelse(svy == 2 &
+                                   svyweek.y >= 14 &
+                                   svyweek.y <= 39, 1, 0)),
+          monsoon = as.factor(monsoon))
+
+
 table(df_recoded$tr_comb, useNA = "always")
+table(df_recoded$monsoon, useNA = "always")
+
 
 # Export dataframe as RDS
 
-saveRDS(ad, here::here("1-data", "2-final",
+saveRDS(df_recoded, here::here("1-data", "2-final",
                       "enrol_diar_tr_formatted.rds"))
