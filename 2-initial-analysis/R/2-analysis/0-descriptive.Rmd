@@ -15,7 +15,7 @@ output:
 knit: (function(inputFile, encoding) {
         rmarkdown::render(inputFile, 
                           encoding   = encoding, 
-                          output_dir = "../output"
+                          output_dir = here::here("2-initial-analysis/output")
                           )})
 ---
 
@@ -61,9 +61,9 @@ rndr <- function(x, name, ...) {
 # prepare variable for rendering table
 df_analysis %>%
   mutate(Sex = factor(case_when(sex == "male" ~ "Male",
-                                        sex == "female" ~ "Female")),
-         Diarrhea = factor(case_when(diar7d == 0 ~ "No diarrhea",
-                                        diar7d == 1 ~ "Diarrhea")),
+                                sex == "female" ~ "Female")),
+          Diarrhea = factor(case_when(diar7d == 0 ~ "No diarrhea",
+                                      diar7d == 1 ~ "Diarrhea"), levels = c("No diarrhea", "Diarrhea")),
          `Mother's education` = as.factor(momedu),
          `Wealth tertiles` = factor(case_when(wealth_tertile == 1 ~ "T1",
                                               wealth_tertile == 2 ~ "T2",
@@ -145,7 +145,7 @@ table1(~ agedays + Sex + `Wealth tertiles` + wealthscore + `Mother's education` 
          `Household has sewing machine` + `Number of land phone` + `Has BW or color TV` + 
          `Has >=1 wardrobe` + `Has >=1 table`+ `Has >=1 chair` + `Has >=1 clock` + `Has >=1 khat` + 
          `Has >=1 chouki` + `Has >=1 mobile`
-            | tx_table1, data = ., digits = 2,
+            | tx_table1, data = ., 
          render = rndr, topclass="Rtable1-grid Rtable1-left"
          ) 
   
@@ -158,9 +158,9 @@ table1(~ agedays + Sex + `Wealth tertiles` + wealthscore + `Mother's education` 
 
 df_analysis %>%
   mutate(Sex = factor(case_when(sex == "male" ~ "Male",
-                                        sex == "female" ~ "Female")),
+                                sex == "female" ~ "Female")),
          Diarrhea = factor(case_when(diar7d == 0 ~ "No diarrhea",
-                                        diar7d == 1 ~ "Diarrhea")),
+                                     diar7d == 1 ~ "Diarrhea"), levels = c("No diarrhea", "Diarrhea")),
          `Mother's education` = as.factor(momedu),
          `Wealth tertiles` = factor(case_when(wealth_tertile == 1 ~ "T1",
                                               wealth_tertile == 2 ~ "T2",
@@ -254,9 +254,9 @@ table1(~ agedays + Sex + `Mother's education` +
 
 df_analysis %>%
   mutate(Sex = factor(case_when(sex == "male" ~ "Male",
-                                        sex == "female" ~ "Female")),
+                                sex == "female" ~ "Female")),
          Diarrhea = factor(case_when(diar7d == 0 ~ "No diarrhea",
-                                        diar7d == 1 ~ "Diarrhea")),
+                                     diar7d == 1 ~ "Diarrhea"), levels = c("No diarrhea", "Diarrhea")),
          `Mother's education` = as.factor(momedu),
          `Wealth tertiles` = factor(case_when(wealth_tertile == 1 ~ "T1",
                                               wealth_tertile == 2 ~ "T2",
