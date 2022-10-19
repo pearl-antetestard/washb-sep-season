@@ -26,6 +26,7 @@ library(furniture)
 library(boot)
 library(labelled)
 library(table1)
+library(rptR)
 
 here::here()
 
