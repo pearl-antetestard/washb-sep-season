@@ -207,15 +207,23 @@ saveRDS(d, here::here("1-data", "2-final",
 
 
 # Merging with the formatted dataset
-## Merge and save with household data (5551 households)
-df_withwealth <- inner_join(d, df, by=c("dataid","clusterid","hhid","block"))
+pca_wealth <- readRDS(here::here("1-data", "2-final",
+                                 "pca_tertiles_scores_nowashchar.rds"))
+## Merge and save with household data at enrollment/ survey 0 (5551 households)
+df_withwealth <- inner_join(pca_wealth, df, by=c("dataid","clusterid","hhid","block"))
 saveRDS(df_withwealth, here::here("1-data", "2-final",
                                   "enrol_diar_tr_wealth_household.rds"))
 
-## Merge and save with individual data (8440 children)
+## Merge and save with individual data (8440 children, surveys 1 and 2 only)
 df_nowealth <- readRDS(here::here("1-data", "2-final",
                                   "enrol_diar_tr_formatted.rds"))
-df_all <- inner_join(d, df_nowealth, by=c("dataid","clusterid","hhid","block"))
+df_all <- inner_join(pca_wealth, df_nowealth, by=c("dataid","clusterid","hhid","block"))
 saveRDS(df_all, here::here("1-data", "2-final",
                       "enrol_diar_tr_wealth_indiv.rds"))
 
+## Merge and save with individual data (10048 children, surveys 0,1,2)
+df_nowealth_svy012 <- readRDS(here::here("1-data", "2-final",
+                                  "enrol_diar_tr_surv012_formatted.rds"))
+df_all_svy012 <- inner_join(pca_wealth, df_nowealth_svy012, by=c("dataid","clusterid","hhid","block"))
+saveRDS(df_all_svy012, here::here("1-data", "2-final",
+                           "enrol_diar_tr_wealth_indiv_svy012.rds"))
