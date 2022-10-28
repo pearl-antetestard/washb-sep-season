@@ -27,6 +27,9 @@ library(boot)
 library(labelled)
 library(table1)
 library(rptR)
+library(officedown)
+library(officer)
+library(flextable)
 
 here::here()
 
