@@ -1,0 +1,357 @@
+---
+title: "Measuring inequalities"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: default
+    highlight: default
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("2-initial-analysis/output")
+                          )})
+---
+
+```{r setup, include=FALSE}
+library(mgcv)
+library(ggeffects)
+library(DHARMa)
+library(mgcViz)
+library(geepack)
+library(msm)
+library(tidymv)
+#remotes::install_github("stefanocoretta/tidygam@devel")
+library(tidygam)
+library(cowplot)
+library(ggpubr)
+
+```
+
+
+```{r clean environment, echo=FALSE}
+
+rm(list=ls(all=TRUE))
+
+```
+
+```{r configuration, message=FALSE}
+
+library(here)
+source(here::here("2-initial-analysis/R", "0-config.R"))
+
+```
+
+```{r read formatted data, message=FALSE}
+
+#df_analysis <- readRDS(file = here::here("1-data", "2-final",
+                      #"enrol_diar_tr_wealth_indiv_svy012.rds"))
+
+# Surveys 1 and 2 (8440 children)
+df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
+                       filter(svy!=0)
+
+```
+
+
+```{r data, message=FALSE}
+
+df_analysis_svy12 <- df_analysis_svy12 %>%
+  mutate(wealth_rank = rank(wealthscore)/nrow(.),
+  block=factor(block),
+  wealth_tertile=factor(wealth_tertile),
+  diar7d=factor(diar7d),
+  Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention")),
+  dummy=rep(1, nrow(.)))
+
+summary(df_analysis_svy12$wealth_rank)
+
+```
+
+## Modeling diarrhea ~ SEP using GAM
+
+```{r gam}
+
+mod_gam = gam(diar7d ~ s(wealth_rank, bs = "cr", by = Arms) +
+               s(block, bs = "re", by = dummy), # re is on
+               data = df_analysis_svy12,
+               family = binomial(link = "log"), method = "REML")
+summary(mod_gam)
+
+```
+
+```{r plot gam, message=FALSE}
+
+## patial effects
+# control arm
+#gratia::draw(mod_gam1)
+# intervention arm
+#gratia::draw(mod_gam2)
+
+gam_plot <- plot_smooths(model = mod_gam, series = wealth_rank, 
+                         comparison = Arms, transform = plogis) +
+  #theme(legend.position = "top") +
+  labs(x = "Relative wealth rank of the children based on the wealth score",
+       y = "Probability of diarrhea",
+       title = "GAM") +
+  theme_bw()
+
+gam_plot
+```
+
+```{r, echo=FALSE, message=FALSE}
+
+#par(mfrow = c(2, 2))
+#gam.check(mod_gam1)
+
+#plotQQunif(mod_gam) # left plot in plot.DHARMa()
+#plotResiduals(mod_gam, rank = F) 
+
+#plotQQunif(mod_gam2) # left plot in plot.DHARMa()
+#plotResiduals(mod_gam2, rank = F) # right plot in plot.DHARMa()
+
+```
+
+## Modeling diarrhea ~ SEP using geeglm
+
+```{r plotting geeglm estimates, message=FALSE}
+
+df_control <- df_analysis_svy12 %>%
+  filter(Arms == "Control")
+
+df_control$diar7d <- as.numeric(df_control$diar7d)
+
+geemod_c <- geeglm(diar7d ~ wealth_tertile,
+                   family = poisson(link="log"), id=block,  corstr='independence', std.err = "san.se",
+                   data = df_control)
+
+# Get PR from geemod_c
+df_control$prediction <- exp(geemod_c$fitted.values) 
+df_control$upper <- exp(geemod_c$fit + 1.96 * coef(summary(geemod_c))[2,"Std.err"])
+df_control$lower <- exp(geemod_c$fit - 1.96 * coef(summary(geemod_c))[2,"Std.err"])
+
+
+df_interv <- df_analysis_svy12 %>%
+  filter(Arms == "Intervention")
+
+df_interv$diar7d <- as.numeric(df_interv$diar7d)
+
+geemod_i <- geeglm(diar7d ~ wealth_tertile,
+                   family = poisson(link="log"), id=block,  corstr='independence', std.err = "san.se",
+                   data = df_interv)
+
+df_interv$prediction <- exp(geemod_i$fitted.values) 
+df_interv$upper <- exp(geemod_i$fit + 1.96 * coef(summary(geemod_i))[2,"Std.err"])
+df_interv$lower <- exp(geemod_i$fit - 1.96 * coef(summary(geemod_i))[2,"Std.err"])
+
+dat <- rbind(df_control, df_interv)
+
+gee_plot <- ggplot(dat, aes(wealth_tertile, prediction)) +
+  geom_errorbar(aes(ymin=lower, ymax=upper, colour = Arms), 
+                width = 0.25, size = 1, position = position_dodge(width = 0.4)) +
+  geom_point(aes(fill = Arms), shape = 21, size = 3, 
+             position = position_dodge(width = 0.4)) +
+  #theme(legend.position = "top") +
+  labs(x = "Wealth tertiles",
+       y = "Prevalence ratio of diarrhea",
+       title = "GEEGLM") +
+  theme_bw() 
+
+gee_plot
+```
+
+## Combining plots
+
+```{r combining plots}
+
+plot_grid(gam_plot, gee_plot, ncol = 1)
+
+```
+
+## RII and SII estimates from geeglm
+
+```{r rii sii estimates using gee}
+
+###
+# RII < 1 or SII < 0: diarrhea case more likely observed among the poor
+
+## Control
+
+df_control$diar7d <- as.numeric(df_control$diar7d)
+
+geemod_c <- geeglm(diar7d ~ wealth_rank,
+               family = poisson(link="log"), id=block,  corstr='independence', std.err = "san.se",
+               data = df_control)
+
+## RII
+beta_gee_c = geemod_c$coefficients[2]
+RII_gee_c = exp(beta_gee_c)
+RII_gee_c 
+
+## SII
+SII_gee_c = exp(coef(geemod_c)[1]+coef(geemod_c)[2]) - exp(coef(geemod_c)[1])
+SII_gee_c
+
+
+## Intervention
+
+df_interv$diar7d <- as.numeric(df_interv$diar7d)
+
+geemod_i <- geeglm(diar7d ~ wealth_rank,
+               family = poisson(link="log"), id=block,  corstr='independence', std.err = "san.se",
+               data = df_interv)
+
+## RII 
+beta_gee_i = geemod_i$coefficients[2]
+RII_gee_i = exp(beta_gee_i)
+RII_gee_i 
+
+## SII
+SII_gee_i = exp(coef(geemod_i)[1]+coef(geemod_i)[2]) - exp(coef(geemod_i)[1])
+SII_gee_i
+
+
+ineq_estimates <- data_frame(RII_gee_c, RII_gee_i, SII_gee_c, SII_gee_i)
+ineq_estimates
+```
+
+## 95% CIs
+
+```{r stand errors gee}
+
+## Control
+# RII
+se_b1 = coef(summary(geemod_c))[2,"Std.err"]; #se_b1
+RII_low<-exp(beta_gee_c-1.96*se_b1); RII_low
+RII_up<-exp(beta_gee_c+1.96*se_b1); RII_up
+
+# SII
+# delta method
+b <- coef(geemod_c)
+v = vcov(geemod_c)
+SII_sd = deltamethod(~exp(x1+x2)-exp(x1),b,v) 
+# here we require the delta method to estimate the variance of SII
+SII_low<-SII_gee_c-1.96*SII_sd; SII_low
+SII_up<-SII_gee_c+1.96*SII_sd; SII_up
+
+## Intervention
+# RII
+se_b1_i = coef(summary(geemod_i))[2,"Std.err"]; #se_b1_i
+RII_low_i<-exp(beta_gee_i-1.96*se_b1_i); RII_low_i
+RII_up_i<-exp(beta_gee_i+1.96*se_b1_i); RII_up_i
+
+# SII
+# delta method
+b_i <- coef(geemod_i)
+v_i = vcov(geemod_i)
+SII_sd_i = deltamethod(~exp(x1+x2)-exp(x1),b_i,v_i) 
+# here we require the delta method to estimate the variance of SII
+SII_low_i<-SII_gee_i-1.96*SII_sd_i; SII_low_i
+SII_up_i<-SII_gee_i+1.96*SII_sd_i; SII_up_i
+
+
+RII <- c(RII_gee_c, RII_gee_i)
+RII_lower <- c(RII_low, RII_low_i)
+RII_upper <- c(RII_up, RII_up_i)
+SII <- c(SII_gee_c, SII_gee_i)
+SII_lower <- c(SII_low, SII_low_i)
+SII_upper <- c(SII_up, SII_up_i)
+```
+
+## RII and SII estimates with 95% CIs
+
+```{r estimates with 95% CI}
+ineq_tab <- data_frame(RII, RII_lower, RII_upper, SII, SII_lower, SII_upper)
+ineq_tab <- as.data.frame(ineq_tab)
+
+row.names(ineq_tab) <- c("Control", "Intervention")
+ineq_tab
+```
+
+## Estimating diarrhea prevalence by arm
+
+```{r diarrhea by treatment group}
+
+rndr <- function(x, name, ...) {
+    if (!is.numeric(x)) return(render.categorical.default(x))
+    what <- switch(name)
+    parse.abbrev.render.code(c("", what))(x)
+}
+
+
+tab <- df_analysis_svy12 %>%
+  mutate(diar7d = fct_drop(factor(diar7d), only = "0"),
+         Diarrhea = factor(case_when(diar7d == 1 ~ " ")),
+         tx_table1 = factor(tr_comb, labels = c("Control","Intervention"))
+         ) %>%
+# render
+table1(~  Diarrhea | tx_table1, data = ., overall = F,
+          render = rndr) 
+
+tab
+
+#set_flextable_defaults(background.color = "black", font.color = "white")
+#ft <- flextable(data.frame(tab))
+#ft
+
+```
+
+
+```{r ineq estimates and diarrhea prevalence, message=FALSE}
+
+ineq_tab$prev_diar <- c(6,4)
+ineq_tab$Arms <- c("Control", "Intervention")
+ineq_tab
+
+```
+
+## Plotting RII/ SII and diarrhea prevalence
+
+
+```{r, message=FALSE}
+
+ineq_tab$Arms <- factor(relevel(factor(ineq_tab$Arms), ref = "Control"))
+
+a <- ggplot(ineq_tab, aes(prev_diar, RII)) +
+  geom_errorbar(aes(ymin=RII_lower, ymax=RII_upper, color = Arms), 
+                width = 0.25, size = 1, position = position_dodge(width = 0.4)) +
+  geom_point(aes(color = Arms), shape = 21, size = 3, 
+             position = position_dodge(width = 0.4)) +
+  geom_hline(yintercept = 1, linetype="dotted") +
+  scale_color_manual(values = c("#E69F00", "#D55E00")) +
+  coord_flip() +
+  #theme(legend.position = "top") +
+  labs(x = "Diarrhea prevalence (%)",
+       y = "Relative Index of Inequality (95% CI)",
+       title = "Relative Inequalities") +
+  guides(col = "none")+
+  theme_bw()
+
+
+b <- ggplot(ineq_tab, aes(prev_diar, SII)) +
+  geom_errorbar(aes(ymin=SII_lower, ymax=SII_upper, color = Arms), 
+                width = 0.25, size = 1, position = position_dodge(width = 0.4)) +
+  geom_point(aes(color = Arms), shape = 21, size = 3, 
+             position = position_dodge(width = 0.4)) +
+  geom_hline(yintercept = 0, linetype="dotted") +
+  scale_color_manual(values = c("#E69F00", "#D55E00")) +
+  coord_flip() +
+  #theme(legend.position = "top") +
+  labs(x = " ",
+       y = "Slope Index of Inequality (95% CI)",
+       title = "Absolute Inequalities") +
+  theme_bw()
+#b <- b + theme(legend.position = "bottom") 
+
+ggarrange(a, b,
+align='h',
+common.legend = T)
+```
+
