@@ -75,7 +75,7 @@ summary(df_analysis_svy12$wealth_rank)
 
 ```
 
-## Modeling diarrhea ~ SEP using GAM
+## Modelling diarrhea ~ SEP using GAM
 
 ```{r gam}
 
@@ -119,7 +119,7 @@ gam_plot
 
 ```
 
-## Modeling diarrhea ~ SEP using geeglm
+## Modelling diarrhea ~ SEP using geeglm
 
 ```{r plotting geeglm estimates, message=FALSE}
 
