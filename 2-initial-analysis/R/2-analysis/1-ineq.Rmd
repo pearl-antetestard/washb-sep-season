@@ -46,8 +46,6 @@ rm(list=ls(all=TRUE))
 library(here)
 source(here::here("2-initial-analysis/R", "0-config.R"))
 
-## test edit
-
 ```
 
 ```{r read formatted data, message=FALSE}
@@ -239,7 +237,7 @@ RII_up<-exp(beta_gee_c+1.96*se_b1); RII_up
 b <- coef(geemod_c)
 v = vcov(geemod_c)
 SII_sd = deltamethod(~exp(x1+x2)-exp(x1),b,v) 
-# here we require the delta method to estimate the variance of SII
+# here we require the delta method to estimate the sd of SII
 SII_low<-SII_gee_c-1.96*SII_sd; SII_low
 SII_up<-SII_gee_c+1.96*SII_sd; SII_up
 
@@ -254,7 +252,7 @@ RII_up_i<-exp(beta_gee_i+1.96*se_b1_i); RII_up_i
 b_i <- coef(geemod_i)
 v_i = vcov(geemod_i)
 SII_sd_i = deltamethod(~exp(x1+x2)-exp(x1),b_i,v_i) 
-# here we require the delta method to estimate the variance of SII
+# here we require the delta method to estimate the sd of SII
 SII_low_i<-SII_gee_i-1.96*SII_sd_i; SII_low_i
 SII_up_i<-SII_gee_i+1.96*SII_sd_i; SII_up_i
 
