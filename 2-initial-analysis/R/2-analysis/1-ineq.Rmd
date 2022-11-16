@@ -88,23 +88,77 @@ summary(mod_gam)
 ```
 
 ```{r plot gam, message=FALSE}
-
-## patial effects
+## partial effects
 # control arm
 #gratia::draw(mod_gam1)
 # intervention arm
 #gratia::draw(mod_gam2)
 
+## Probabilities
 gam_plot <- plot_smooths(model = mod_gam, series = wealth_rank, 
-                         comparison = Arms, transform = plogis) +
+                         comparison = Arms, transform = exp) +
   #theme(legend.position = "top") +
-  labs(x = "Relative wealth rank of the children based on the wealth score",
-       y = "Probability of diarrhea",
-       title = "GAM") +
+  labs(x = "Wealth rank",
+       y = "Probability of diarrhea") +
+       #title = "GAM") +
   theme_bw()
 
-gam_plot
+gam_plot <- gam_plot + 
+  theme(legend.position = "bottom") 
+
+gam_diff <- get_smooths_difference(mod_gam, wealth_rank, difference = list(Arms = c("Control", "Intervention")))
+## codes for get_smooths_difference: https://github.com/stefanocoretta/tidymv/blob/main/R/plotting.R that uses the get_difference function (https://github.com/stefanocoretta/tidymv/blob/main/R/imported-fun.R)
+## computes simultaneous CIs which follows Gavin Simpson's: {https://fromthebottomoftheheap.net/2016/12/15/simultaneous-interval-revisited/
+
+plot_diff <- ggplot(gam_diff, aes(wealth_rank, difference, group=group)) +
+  geom_hline(aes(yintercept = 0), colour = "#8f5f3f") +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = sig_diff), alpha = 0.3) +
+  geom_line(aes(colour = sig_diff), size = 1) +
+  scale_colour_manual(values = c("#e35760", "#6f849c")) +
+  scale_fill_manual(values = c("#e35760", "#6f849c")) +
+  labs(colour = "significant", fill = "significant") +
+  labs(x = " ",
+       y = "PD of diarrhea \n(control vs intervention)") +
+  #theme(legend.position = "top") +
+  theme_bw()
+
+plot_diff <- plot_diff + 
+  theme(legend.position = "bottom") 
+
+# to get the PR, the difference was exponentiated
+plot_ratio <- ggplot(gam_diff, aes(wealth_rank, exp(difference), group=group)) + 
+  geom_hline(aes(yintercept = 1), colour = "#8f5f3f") +
+  geom_ribbon(aes(ymin = exp(CI_lower), ymax = exp(CI_upper), fill = sig_diff), alpha = 0.3) +
+  geom_line(aes(colour = sig_diff), size = 1) +
+  scale_colour_manual(values = c("#e35760", "#6f849c")) +
+  scale_fill_manual(values = c("#e35760", "#6f849c")) +
+  labs(colour = "significant", fill = "significant") +
+  labs(x = "Wealth rank",
+       y = "PR of diarrhea \n(control vs intervention)") +
+  #theme(legend.position = "top") +
+  theme_bw()
+
+plot_ratio <- plot_ratio + 
+  theme(legend.position = "bottom") 
+
+#vignette("plot-smooths", package = "tidymv")
+#x=plot(ggeffects::ggpredict(mod_gam, terms = c("wealth_rank","Arms")))
+
+plots_gam <- ggarrange(plot_diff, plot_ratio,
+            align="hv", ncol = 1, nrow = 2, common.legend = T)
+
+ggarrange(plots_gam, gam_plot,
+            align="hv", ncol = 2, nrow = 1)
+
 ```
+
+
+Right-side figure:
+It shows that the probability of diarrhea tend to decrease as the relative wealth rank of the children increases for both
+control and intervention arms. The intervention arm has a more linear pattern compared to the control arm.
+
+Left-side figures:
+Illustrate the prevalence difference (top) and ratio (bottom) of diarrhea between the control and intervention arms. Values above 0 (top) and 1 (bottom) means that the prevalence of diarrhea is greater in the control arm compared to the intervention arm. Values below  0 (top) and 1 (bottom) signify that the prevalence of diarrhea is greater in the intervention arm. We can observe that among those with lower SEP, diarrhea prevalence was significantly higher among the controls. Meanwhile, among those with a relative rank between 0.50 and 0.75, diarrhea was significantly higher in the intervention arm. 
 
 ```{r, echo=FALSE, message=FALSE}
 
@@ -119,7 +173,9 @@ gam_plot
 
 ```
 
-## Modelling diarrhea ~ SEP using geeglm
+## Plotting diarrhea ~ SEP using geeglm
+
+Used wealth_tertile instead of wealth_rank (based on the wealth score) in the model for plotting
 
 ```{r plotting geeglm estimates, message=FALSE}
 
@@ -161,23 +217,29 @@ gee_plot <- ggplot(dat, aes(wealth_tertile, prediction)) +
   #theme(legend.position = "top") +
   labs(x = "Wealth tertiles",
        y = "Prevalence ratio of diarrhea",
-       title = "GEEGLM") +
+       #title = "GEEGLM"
+       ) +
   theme_bw() 
 
 gee_plot
 ```
 
-## Combining plots
+## Combining the GAM and GEEGLM plots
 
 ```{r combining plots}
+
+gam_plot <- gam_plot + 
+  theme(legend.position = "right") 
 
 plot_grid(gam_plot, gee_plot, ncol = 1)
 
 ```
 
-## RII and SII estimates from geeglm
+## RII and SII estimates from the GEEGLM model
 
-```{r rii sii estimates using gee}
+Here, used wealth_rank in the model.
+
+```{r rii sii estimates using gee, message = FALSE}
 
 ###
 # RII < 1 or SII < 0: diarrhea case more likely observed among the poor
@@ -224,7 +286,10 @@ ineq_estimates
 
 ## 95% CIs
 
-```{r stand errors gee}
+RII CIs: based on Wald interval
+SII CIs: based on the delta method using the deltamethod function in the msm package
+
+```{r stand errors gee, message = FALSE}
 
 ## Control
 # RII
@@ -265,7 +330,6 @@ SII_lower <- c(SII_low, SII_low_i)
 SII_upper <- c(SII_up, SII_up_i)
 ```
 
-## RII and SII estimates with 95% CIs
 
 ```{r estimates with 95% CI}
 ineq_tab <- data_frame(RII, RII_lower, RII_upper, SII, SII_lower, SII_upper)
@@ -326,10 +390,10 @@ a <- ggplot(ineq_tab, aes(prev_diar, RII)) +
              position = position_dodge(width = 0.4)) +
   geom_hline(yintercept = 1, linetype="dotted") +
   scale_color_manual(values = c("#E69F00", "#D55E00")) +
-  coord_flip() +
+  #coord_flip() +
   #theme(legend.position = "top") +
-  labs(x = "Diarrhea prevalence (%)",
-       y = "Relative Index of Inequality (95% CI)",
+  labs(x = " ",
+       y = "RII (95% CI)",
        title = "Relative Inequalities") +
   guides(col = "none")+
   theme_bw()
@@ -342,16 +406,54 @@ b <- ggplot(ineq_tab, aes(prev_diar, SII)) +
              position = position_dodge(width = 0.4)) +
   geom_hline(yintercept = 0, linetype="dotted") +
   scale_color_manual(values = c("#E69F00", "#D55E00")) +
-  coord_flip() +
+  #coord_flip() +
   #theme(legend.position = "top") +
-  labs(x = " ",
-       y = "Slope Index of Inequality (95% CI)",
+  labs(x = "Diarrhea prevalence (%)",
+       y = "SII (95% CI)",
        title = "Absolute Inequalities") +
   theme_bw()
 #b <- b + theme(legend.position = "bottom") 
 
-ggarrange(a, b,
-align='h',
-common.legend = T)
+ineq_plot <- ggarrange(a, b,
+            align='h',
+            common.legend = T, nrow = 2)
+
+ineq_plot
+
 ```
 
+We can observe based on the above figures that both relative and absolute inequalities tend to be smaller when the
+diarrhea prevalence is higher (in this case among the controls). This pattern is consistent with other fields such as inequalities in HIV outcomes. 
+
+
+## Combining the GEEGLM and inequality plots 
+
+```{r}
+
+gee_plot <- ggplot(dat, aes(wealth_tertile, prediction)) +
+  geom_errorbar(aes(ymin=lower, ymax=upper, colour = Arms), 
+                width = 0.25, size = 1, position = position_dodge(width = 0.4)) +
+  geom_point(aes(fill = Arms), shape = 21, size = 3, 
+             position = position_dodge(width = 0.4)) +
+  #theme(legend.position = "top") +
+  labs(x = "Wealth tertiles",
+       y = "Prevalence ratio of diarrhea",
+       #title = "GEEGLM"
+       ) +
+  theme_bw() 
+
+gee_plot <- gee_plot + 
+  theme(legend.position = "bottom") 
+
+ggarrange(gee_plot, ineq_plot,
+            align="hv", ncol = 2, nrow = 1)
+
+
+```
+
+Left figure:
+Prevalence ratio estimates from a GEEGLM model by wealth tertiles and arms. For all tertile groups, PR of diarrhea were higher among the controls. But we only see the error bars not overlapping in the first tertile  - signifying a statistically significant difference between the control and intervention arms. 
+
+Right figures:
+Illustrate the inequality indicators - the Relative Index of Inequality (top) and the Slope Index of Inequality (bottomie) in comparison to the diarrhea prevalence by arms.
+For both relative and absolute scales, there were significant wealth-related inequalities in diarrhea prevalence disfavoring the poor among the control groups. In the intervention arm, we observed a similar pattern where diarrhea prevalence is higher among the poor but not statistically significant. 
