@@ -1,4 +1,11 @@
-### WASH interventions and child diarrhea in Bangladesh: estimates of effect modification by season and socioeconomic position in a cluster randomized trial
+### washb-sep-season
+
+####### A secondary analysis of the WASH Benefits Bangladesh cluster-randomized trial. 
+
+####### This repository includes R codes to support the paper: WASH interventions and child diarrhea at the interface of climate and socioeconomic position in Bangladesh.
+
+ 
 
 
-#### Secondary analysis of the WASH Benefits Bangladesh randomized controlled trial.
+
+
