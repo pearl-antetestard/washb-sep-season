@@ -1,0 +1,145 @@
+---
+title: "Estimating diarrhea prevalence by wealth using GAM in the control and intervention groups during rainy season"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: default
+    highlight: default
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("3-secondary-analysis/output")
+                          )})
+---
+
+```{r clean environment, echo=FALSE}
+
+rm(list=ls(all=TRUE))
+
+```
+
+```{r configuration, message=FALSE}
+
+library(here)
+source(here::here("3-secondary-analysis/R", "0-config.R"))
+
+```
+
+```{r read formatted data, message=FALSE}
+
+#df_analysis <- readRDS(file = here::here("1-data", "2-final",
+                      #"enrol_diar_tr_wealth_indiv_svy012.rds"))
+
+# Surveys 1 and 2 (8440 children)
+df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
+                      filter(svy!=0) %>%
+                      filter(monsoon==1)
+
+```
+
+```{r data, message=FALSE}
+
+df_analysis_svy12 <- df_analysis_svy12 %>%
+  mutate(wealth_rank = rank(wealthscore)/nrow(.),
+  block=factor(block),
+  wealth_tertile=factor(wealth_tertile),
+  diar7df=factor(diar7d),
+  Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention")),
+  dummy=rep(1, nrow(.)))
+
+summary(df_analysis_svy12$wealth_rank)
+str(df_analysis_svy12$diar7d)
+
+df_analysis_svy12 <- df_analysis_svy12 %>%
+  mutate(diar7d = case_when(
+    diar7d == "0" ~ 0,
+    diar7d == "1" ~ 1,
+    TRUE ~ as.numeric(NA)
+  ))
+str(df_analysis_svy12$diar7d)
+
+
+```
+
+
+```{r prev by arm and wealth}
+
+# releving the variable Arms with the intervention arm as reference
+# rationale: there were more diarrhea prevalence in the control arm
+df_analysis_svy12$Arms <- relevel(df_analysis_svy12$Arms, ref = "Intervention")
+
+# gam to estimate the prevalence difference
+mod_gam_1 = gam(diar7d ~ Arms + s(wealth_rank, bs = "cr", by = Arms) +
+               s(block, bs = "re", by = dummy), # re is on
+               data = df_analysis_svy12,
+               family = "gaussian", method = "REML")
+summary(mod_gam_1)
+
+
+# Diarrhea prevalence
+#gam_plot_prev <- plot_smooths(model = mod_gam_1, series = wealth_rank, 
+           #              comparison = Arms) +
+           #      scale_colour_manual(values = c('turquoise','#E69F00')) + 
+           #     #scale_colour_discrete(labels=c("Control","Intervention")) +
+           #      scale_fill_manual(values = c('turquoise','#E69F00')) + 
+           #      #scale_fill_discrete(labels=c("Control","Intervention")) + 
+           #      scale_linetype_manual(values=c("solid","dashed")) +
+           #     #scale_linetype_discrete(labels=c("Control","Intervention")) +
+           #     scale_y_continuous(breaks=seq(0,0.1,by=0.02), 
+           #                        labels =  sprintf("%1.0f",seq(0,0.1,by=0.02)*100)) +
+           #     labs(colour = "Arms", fill = "Arms", linetype = "Arms") +
+           #     labs(x = "Wealth rank based on the wealth index score",
+           #           y = "Diarrhea Prevalence (%)", tag = "a \n") +
+           #        #title = "gam") +
+           #      #coord_cartesian(ylim=c(0.01,0.12)) +
+           #       theme_minimal() +
+           #      theme(legend.position = c(0.75,0.75),
+           #            legend.title = element_blank(),
+           #            legend.key.size = unit(0.3, 'cm'),text = element_text(size=7.5)) 
+##gam_plot_prev <- gam_plot_prev + coord_fixed(ratio=10) #10 divided by 1
+
+gam_diff <- get_smooths_difference(mod_gam_1, wealth_rank, difference = list(Arms = c("Control",
+                                      "Intervention")))
+print(gam_diff)
+
+```
+
+```{r gam diar prev}
+
+#gam_df_prev <- gam_plot_prev[["data"]]
+#gam_df_prev_control <- gam_df_prev %>%  filter(Arms=='Control')
+#gam_df_prev_interv <- gam_df_prev %>%  filter(Arms=='Intervention')
+
+```
+
+```{r save}
+
+#saveRDS(gam_df_prev_control, file = here::here("1-data","1-temp",
+#                                             "gam-diar-prevalence-control-wealthrank-rainy.RDS"))
+#write_csv(gam_df_prev_control, file = here::here("1-data","1-temp",
+#                                             "gam-diar-prevalence-control-wealthrank-rainy.csv"))
+
+#saveRDS(gam_df_prev_interv, file = here::here("1-data","1-temp",
+#                                             "gam-diar-prevalence-interv-wealthrank-rainy.RDS"))
+#write_csv(gam_df_prev_interv, file = here::here("1-data","1-temp",
+#                                             "gam-diar-prevalence-interv-wealthrank-rainy.csv"))
+
+saveRDS(gam_diff, file = here::here("1-data","1-temp",
+                                             "gam-diar-prevdifference-interv-wealthrank-rainy.RDS"))
+write_csv(gam_diff, file = here::here("1-data","1-temp",
+                                             "gam-diar-prevdifference-interv-wealthrank-rainy.csv"))
+
+```
+
+```{r session info}
+sessionInfo()
+
+```
