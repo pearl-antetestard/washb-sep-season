@@ -1,0 +1,178 @@
+---
+title: "Descriptive Statistics - Education"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+ # officedown yaml header
+output: word_document
+  #officedown::rdocx_document
+   # theme: default
+    #highlight: default
+    #code_folding: hide
+    #toc: true
+    #toc_depth: 3
+    #toc_float:
+      #collapsed: true
+      #smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("4-supplementary/output")
+                          )})
+---
+
+
+```{r clean environment, echo=FALSE}
+
+rm(list=ls(all=TRUE))
+
+```
+
+```{r configuration, echo = FALSE, message=FALSE}
+
+library(here)
+source(here::here("2-initial-analysis/R", "0-config.R"))
+
+```
+
+```{r read formatted data, echo=FALSE}
+
+df_analysis <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds"))
+
+# Only baseline/ survey 0 (1608 children)
+df_analysis_baseline <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
+                       filter(svy==0)
+
+```
+
+
+
+# Baseline characteristics by education
+
+```{r baseline characteristics by intervention, echo=FALSE}
+
+# custom render function for the variables
+rndr <- function(x, name, ...) {
+    if (!is.numeric(x)) return(render.categorical.default(x))
+    what <- switch(name,
+                   agedays = "Median (Q1 to Q3)",
+                   Nhh = "Mean (SD)",
+                   Ncomp = "Mean (SD)",
+                   wealthscore = "Median (Q1 to Q3)",
+                   momage = "Mean (SD)",
+                   landacre = "Mean (SD)")
+    parse.abbrev.render.code(c("", what))(x)
+}
+
+tab1 <- df_analysis_baseline %>%
+  mutate(#Sex = factor(case_when(sex == "male" ~ "Male",
+                              #  sex == "female" ~ "Female")),
+         #`Mother's education` = as.factor(momedu),
+         #`Wealth tertiles` = factor(case_when(wealth_tertile == 1 ~ "T1",
+                                           #   wealth_tertile == 2 ~ "T2",
+                                            #  wealth_tertile == 3 ~ "T3")),
+         #`Monsoon season` = factor(case_when(monsoon == 0 ~ "Dry",
+                                       #      monsoon == 1 ~ "Wet")),
+         diar7d = fct_drop(factor(diar7d), only = "0"),
+         Diarrhea = factor(case_when(diar7d == 1 ~ " ")),
+         tubewell = fct_drop(factor(tubewell), only = "0"),
+         `Primary water source: shallow tubewell` = factor(case_when(tubewell == 1 ~ "")),
+         storewat = fct_drop(factor(storewat), only = "0"),
+         `Store drinking water` = factor(case_when(storewat == 1 ~ "")),
+         treatwat = fct_drop(factor(treatwat), only = "0"),
+         `Reported treating water today/tomorrow` = factor(case_when(treatwat == 1 ~ "")),
+         latown = fct_drop(factor(latown), only = "0"),
+         `Own their latrine` = factor(case_when(latown == 1 ~ "")),
+         latslab = fct_drop(factor(latslab), only = "0"),
+         `Latrine has concrete slab` = factor(case_when(latslab == 1 ~ "")),
+         latseal = fct_drop(factor(latseal), only = "0"),
+         `Latrine has functional water seal` = factor(case_when(latseal == 1 ~ "")),
+         latfeces = fct_drop(factor(latfeces), only = "0"),
+         `No visible feces on floor of latrine` = factor(case_when(latfeces == 1 ~ "")),
+         potty = fct_drop(factor(potty), only = "0"),
+         `Has a potty for defecation` = factor(case_when(potty == 1 ~ "")),
+         hwsws = fct_drop(factor(hwsws), only = "0"),
+         `Primary handwashing location has water/soap` = factor(case_when(hwsws ==1 ~ "")),
+         roof = fct_drop(factor(roof), only = "0"),
+         `Improved roof material (tin, cement)` = factor(case_when(roof == 1 ~ "")),
+         walls = fct_drop(factor(walls), only = "0"),
+         `Improved wall material (wood, brick, thin)` = factor(case_when(walls == 1 ~ "")),
+         floor = fct_drop(factor(floor), only = "0"),
+         `Improved floor (wood, concrete)` = factor(case_when(floor == 1 ~ "")),
+         elec = fct_drop(factor(elec), only = "0"),
+         `Household has electricity` = factor(case_when(elec == 1 ~ "")),
+         asset_radio = fct_drop(factor(asset_radio), only = "0"),
+         `Household has radio` = factor(case_when(asset_radio == 1 ~ "")),
+         asset_refrig = fct_drop(factor(asset_refrig), only = "0"),
+         `Household has refrigerator` = factor(case_when(asset_refrig == 1 ~ "")),
+         asset_bike = fct_drop(factor(asset_bike), only = "0"),
+         `Household has bicycle` = factor(case_when(asset_bike == 1 ~ "")),
+         asset_moto = fct_drop(factor(asset_moto), only = "0"),
+         `Household has motorcycle` = factor(case_when(asset_moto == 1 ~ "")),
+         asset_sewmach = fct_drop(factor(asset_sewmach), only = "0"),
+         `Household has sewing machine` = factor(case_when(asset_sewmach == 1 ~ "")),
+         `Number of land phone` = factor(case_when(asset_phone == 0 ~ "0",
+                                                   asset_phone == 1 ~ "1")),
+         asset_tv = fct_drop(factor(asset_tv), only = "0"),
+         `Has BW or color TV` = factor(case_when(asset_tv == 1 ~ "")),
+         asset_wardrobe = fct_drop(factor(asset_wardrobe), only = "0"),
+         `Has >=1 wardrobe` = factor(case_when(asset_wardrobe == 1 ~ "")),
+         asset_table = fct_drop(factor(asset_table), only = "0"),
+         `Has >=1 table` = factor(case_when(asset_table == 1 ~ "")),
+         asset_chair = fct_drop(factor(asset_chair), only = "0"),
+         `Has >=1 chair` = factor(case_when(asset_chair == 1 ~ "")),
+         asset_clock = fct_drop(factor(asset_clock), only = "0"),
+         `Has >=1 clock` = factor(case_when(asset_clock == 1 ~ "")),
+         asset_khat = fct_drop(factor(asset_khat), only = "0"),
+         `Has >=1 khat` = factor(case_when(asset_khat == 1 ~ "")),
+         asset_chouki = fct_drop(factor(asset_chouki), only = "0"),
+         `Has >=1 chouki` = factor(case_when(asset_chouki == 1 ~ "")),
+         asset_mobile = fct_drop(factor(asset_mobile), only = "0"),
+         `Has >=1 mobile` = factor(case_when(asset_mobile == 1 ~ "")),
+         #tx_table1 = factor(tr_comb, labels = c("Control","Combined WSH + WSHN"))
+         ) %>%
+  
+  labelled::set_variable_labels(#agedays = "Age (days)",
+                      #momage = "Mother's age (years)",
+                      Nhh = "Mean number of persons per HH", 
+                      Ncomp = "Mean number of persons in compound",
+                      #wealthscore = "Wealth scores",
+                      momeduy = "Mother's education (years)",
+                      landacre = "Land in acres"
+                      ) %>%
+# render
+table1(~ #`Wealth tertiles` + wealthscore + `Monsoon season` + #effect modifiers
+          #agedays + Sex + #child characteristics
+          #mother characteristics
+          #momage + #`Mother's education` 
+          #momeduy +
+          #household characteristics
+          Nhh + Ncomp + 
+          #Asset-based variables within the wealth index 
+          landacre + `Improved wall material (wood, brick, thin)` + `Improved floor (wood, concrete)` +
+          `Household has electricity` + `Household has refrigerator` + `Household has bicycle` +
+          `Household has motorcycle` + `Household has sewing machine` + `Has BW or color TV` + 
+          `Has >=1 wardrobe` + `Has >=1 table` + `Has >=1 chair` + `Has >=1 khat` + `Has >=1 chouki` +
+          `Has >=1 mobile` +
+          #Asset-based variables not included within the wealth index
+          `Primary water source: shallow tubewell` + `Store drinking water` + 
+          `Reported treating water today/tomorrow` + `Own their latrine` + `Latrine has concrete slab` + 
+          `Latrine has functional water seal` + `No visible feces on floor of latrine` + 
+          `Has a potty for defecation` + `Primary handwashing location has water/soap` + 
+          `Improved roof material (tin, cement)` + 
+          `Household has radio` + `Number of land phone` + `Has >=1 clock` 
+          | momedu, data = .,overall = F, rowlabelhead = "Baseline characteristics",
+          render = rndr, topclass="Rtable1-grid Rtable1-shade Rtable1-times Rtable1-row"
+          ) 
+
+tab1
+
+```
+
+
+# Session Info
+```{r session info}
+sessionInfo()
+```
+
