@@ -25,7 +25,9 @@ All analyses were running using R software version 4.2.1 on Mac OSX Ventura usin
 >sessionInfo()
 
 R version 4.2.1 (2022-06-23)
+
 Platform: x86_64-apple-darwin17.0 (64-bit)
+
 Running under: macOS Ventura 13.4.1
 
 #### Installation Guide
