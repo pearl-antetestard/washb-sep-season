@@ -1,8 +1,8 @@
-## washb-sep-season
+# washb-sep-season
 
 A pre-specified secondary analysis of the Water, Sanitation and Handwashing (WASH) Benefits Bangladesh cluster-randomized trial to assess the ability of the combined WSH intervention to reduce climate-related diarrhea risk among children along a gradient of socioeconomic position.
 
-### Description
+## Description
 
 This repository includes R codes to support the paper: 
 
@@ -12,11 +12,11 @@ P.A. Ante-Testard, F. Rerolle, A. Nguyen, S. Ashraf, S.M. Parvez, A.B. Naser, T.
 
 If there are any inquiries regarding the files in this repository, please feel free to contact Pearl Ante-Testard at UCSF (pearl.ante@ucsf.edu).
 
-### Additional Resources
+## Additional Resources
 
-#### Open Science Framework
+### Open Science Framework
 
-This repo is also linked to the Open Science Framework, where we also archived the pre-analysis plan and de-identified data of the study:  https://osf.io/xwndg/.
+This repo is mirrored to the Open Science Framework, where we also archived the pre-analysis plan and de-identified data of the study:  https://osf.io/xwndg/.
 
 #### Systems Requirement
 
@@ -30,7 +30,17 @@ Platform: x86_64-apple-darwin17.0 (64-bit)
 
 Running under: macOS Ventura 13.4.1
 
-#### Installation Guide
+### Installation Guide
+
+You can download and install R from CRAN: https://cran.r-project.org
+
+You can download and install RStudio from their website: https://www.rstudio.com
+
+All R packages required to run the analyses are sourced in the file 0-config.R.
+
+The installation time should be < 10 minutes total on a typical desktop computer.
+
+### Instructions for Use
 
 
 
