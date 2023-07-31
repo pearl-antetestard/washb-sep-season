@@ -36,7 +36,7 @@ You can download and install R from CRAN: https://cran.r-project.org
 
 You can download and install RStudio from their website: https://www.rstudio.com
 
-All R packages required to run the analyses are sourced in the file 0-config.R.
+All R packages required to run the analyses are sourced in the file `0-config.R`.
 
 The installation time should be < 10 minutes total on a typical desktop computer.
 
