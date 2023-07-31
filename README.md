@@ -16,5 +16,18 @@ If there are any inquiries regarding the files in this repository, please feel f
 
 #### Open Science Framework
 
+This repo is also linked to the Open Science Framework, where we also archived the pre-analysis plan and de-identified data of the study:  https://osf.io/xwndg/.
+
+#### Systems Requirement
+
+All analyses were running using R software version 4.2.1 on Mac OSX Ventura using the RStudio IDE (https://www.rstudio.com). 
+
+>sessionInfo()
+R version 4.2.1 (2022-06-23)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Ventura 13.4.1
+
+#### Installation Guide
+
 
 
