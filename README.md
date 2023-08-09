@@ -42,5 +42,13 @@ The installation time should be < 10 minutes total on a typical desktop computer
 
 ### Instructions for Use
 
+To run the analyses:
+1. Clone this GitHub repository.
+2. Download the __ analysis datasets from https://osf.io/xwndg/. Save the datasets in subdirectories named: 
+- washb-sep-season/1-data/final
+- washb-sep-season/1-data/final
+3. Create a subdirectory to save the analysis output: washb-sep-season/output/
+
+
 
 
