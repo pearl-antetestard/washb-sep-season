@@ -56,12 +56,12 @@ st_crs(pop_worldpop_bgd) # WGS 84
 
 # wealth index layer in 2011 (from worldpop)
 wealth_worldpop_bgd <- readRDS(file = here::here("1-data",
-                              "1-temp",
+                              "2-final",
                               "wealthindex-grid-cell-bgd.rds")) 
 st_crs(wealth_worldpop_bgd) # WGS 84
 
 # diarrhea prevalence difference between control and interv arms from GAM (WASHB trial)
-diar_prevdifference_wealth <- readRDS(file = here::here("1-data","1-temp",
+diar_prevdifference_wealth <- readRDS(file = here::here("1-data","2-final",
                            "gam-diar-prevdifference-interv-wealthrank-rainy.RDS"))
 # shapefiles (from GADM)
 BGD_shp_adm0 <- st_read(here::here("1-data", "0-gadm",
@@ -77,7 +77,7 @@ st_crs(BGD_shp_adm2) # WGS 84
 #BGD_shp_adm2 <- st_transform(bgd_shp_adm2, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") 
 
 # urban raster layer (from Francois based on the Global Human Settlement)
-ras <- readRDS(here::here("1-data", "Urban_BGD"))
+ras <- readRDS(here::here("1-data", "1-temp", "Urban_BGD"))
 st_crs(ras) # +proj=longlat +datum=WGS84 +no_defs 
 #ras <- projectRaster(ras, crs = crs(BGD_shp_adm2))
 st_crs(ras)
