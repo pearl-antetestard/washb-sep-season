@@ -1,0 +1,94 @@
+---
+title: "Wealth index layer of Bangladesh from WorldPop"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: default
+    highlight: default
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("3-secondary-analysis/output")
+                          )})
+---
+
+```{r clean environment, include=FALSE}
+
+rm(list=ls(all=TRUE))
+
+```
+
+
+```{r configuration, message=FALSE}
+
+library(here)
+source(here::here("3-secondary-analysis/R", "0-config.R"))
+
+```
+
+```{r read worldpop wealth index layer}
+
+# Read tif file for wealth index, 2011
+wipov_tif=read_stars(here::here("1-data", "0-worldpop",
+                                "bgd2011wipov.tif"))
+wipov_sf=st_as_sf(wipov_tif)
+
+```
+
+```{r variables rank}
+
+# Wealth rank
+wipov_sf <- wipov_sf %>%
+  mutate(wealth_rank = rank(bgd2011wipov.tif)/nrow(.),
+         wealth_rank = round(wealth_rank,1)
+         ,wealthdensity = ntile(bgd2011wipov.tif, 3))
+
+```
+
+```{r}
+
+# Colors
+pal <- hcl.colors(3, "Rocket", rev = T, alpha = 0.7)
+
+bgd_wealth_cont <- ggplot() +
+  geom_sf(data = wipov_sf, 
+          aes(fill = wealth_rank), 
+          color=NA,
+          show.legend=TRUE) + 
+  scale_fill_gradientn(colors = pal) +
+  coord_sf() + 
+  theme_void()+
+  labs(
+    fill = "Relative rank based \non the wealth index")
+bgd_wealth_cont
+
+```
+
+```{r save}
+
+# plot
+#ggsave(bgd_wealth_cont, file = here::here("3-secondary-analysis", 
+                                        #  "output",
+                                         # "map-wealthrank-dist-bgd-worldpop.jpg"), height=8,width=7)
+
+# data frame
+saveRDS(wipov_sf, file = here::here("1-data",
+                              "1-temp",
+                              "wealthindex-grid-cell-bgd.rds"))
+
+write_csv(wipov_sf, file = here::here("1-data",
+                              "1-temp",
+                              "wealthindex-grid-cell-bgd.csv"))
+```
+
+```{r session info}
+sessionInfo()
+
+```
