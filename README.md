@@ -48,6 +48,9 @@ To run the analyses:
 - `1-data/0-untouched`
 - `1-data/0-gadm`
 - `1-data/0-terraclim`
+-- `1-data/0-terraclim/ppt`
+-- `1-data/0-terraclim/tmax`
+-- `1-data/0-terraclim/soil`
 - `1-data/0-worldpop`
 - `1-data/1-temp`
 - `1-data/1-final`
@@ -56,8 +59,11 @@ To run the analyses:
 4. The Bangladesh geospatial layers can be downloaded from:
 - GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
 - WorldPop population and wealth layers: https://www.worldpop.org/ (save to `1-data/0-worldpop`)
-- Rural/urban layer: `https://ghsl.jrc.ec.europa.eu` (final rural/urban layer save to `1-data/1-temp`)
+- Rural/urban layer: `https://ghsl.jrc.ec.europa.eu` (rural/urban raster layer save to `1-data/1-temp`)
 - TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`)
+-- Precipitation: `1-data/0-terraclim/ppt`
+-- Maximum temperature: `1-data/0-terraclim/tmax`
+-- Soil moisture: `1-data/0-terraclim/soil`
 6. Create subdirectories to save the output for each analysis: 
 - Effect modification analysis: `2-initial-analysis/output`
 - Spatial analysis: `3-secondary-analysis/output`
