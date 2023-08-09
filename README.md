@@ -45,22 +45,22 @@ The installation time should be < 10 minutes total on a typical desktop computer
 To run the analyses:
 1. Clone this GitHub repository.
 2. Create subdirectories named: 
-- `washb-sep-season/1-data/0-untouched`
-- `washb-sep-season/1-data/0-gadm`
-- `washb-sep-season/1-data/0-terraclim`
-- `washb-sep-season/1-data/0-worldpop`
-- `washb-sep-season/1-data/1-temp`
-- `washb-sep-season/1-data/1-final`
-3. If you want to reproduce the formatted dataset that contains the created wealth and season variables, you can download the public raw datasets (`washb-bangladesh-enrol-public.csv`, `washb-bangladesh-tr-public.csv` and `washb-bangladesh-diar-public.csv`) from the WASH Benefits Bangladesh trial from https://osf.io/wvyn4/. Then, save them in the subdirectory `washb-sep-season/1-data/0-untouched`. 
+- `1-data/0-untouched`
+- `1-data/0-gadm`
+- `1-data/0-terraclim`
+- `1-data/0-worldpop`
+- `1-data/1-temp`
+- `1-data/1-final`
+3. If you want to reproduce the formatted dataset that contains the created wealth and season variables, you can download the public raw datasets (`washb-bangladesh-enrol-public.csv`, `washb-bangladesh-tr-public.csv` and `washb-bangladesh-diar-public.csv`) from the WASH Benefits Bangladesh trial from https://osf.io/wvyn4/. Then, save them in the subdirectory `1-data/0-untouched`. 
 4. Otherwise, you can download the formatted data directly from https://osf.io/xwndg/ to skip data management `1-dm` and proceed with the analyses. Save the formatted dataset in `1-data/1-final`.
 4. The Bangladesh geospatial layers can be downloaded from:
 - GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
 - WorldPop population and wealth layers: https://www.worldpop.org/ (save to `0-worldpop`)
 - TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `0-terraclim`)
 5. Create subdirectories to save the output for each analysis: 
-- Effect modification analysis: `washb-sep-season/2-initial-analysis/output`
-- Spatial analysis: `washb-sep-season/3-secondary-analysis/output`
-- Supplementary analysis: `washb-sep-season/4-supplementary/output`
+- Effect modification analysis: `2-initial-analysis/output`
+- Spatial analysis: `3-secondary-analysis/output`
+- Supplementary analysis: `4-supplementary/output`
 
 N.B. The GPS of the study clusters are not available. Our IRB has deemed that sharing this information could potentially compromise participant privacy. However, this limitation only applies to the spatial analysis; the scripts are accessible, excluding the geographic location data. 
 
