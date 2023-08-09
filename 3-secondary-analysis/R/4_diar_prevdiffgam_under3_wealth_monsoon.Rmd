@@ -124,7 +124,6 @@ diar_prevdifference_wealth <- diar_prevdifference_wealth %>%
 st_crs(diar_prevdifference_wealth) # NA
 ```
 
-179163-left join
 ```{r process data,  message=F}
 
 ## join worldpop population 2014 and worldpop wealth 2011
@@ -279,7 +278,7 @@ map_bgd_wash_block <- ggplot(df_gps_publicid_block) +
   theme(plot.title = element_text(hjust = 0.5))
  
 map_bgd_wash_block
-# the trial was located in Gazipur, Mymensingh and Tangail districts 
+# the trial was located in Gazipur, Kishoreganj, Mymensingh and Tangail districts 
 
 ```
 
