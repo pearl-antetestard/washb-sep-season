@@ -55,8 +55,8 @@ To run the analyses:
 4. Otherwise, you can download the formatted data directly from https://osf.io/xwndg/ to skip data management `1-dm` and proceed with the analyses. Save the formatted dataset in `1-data/1-final`.
 4. The Bangladesh geospatial layers can be downloaded from:
 - GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
-- WorldPop population and wealth layers: https://www.worldpop.org/ (save to `0-worldpop`)
-- TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `0-terraclim`)
+- WorldPop population and wealth layers: https://www.worldpop.org/ (save to `1-data/0-worldpop`)
+- TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`)
 5. Create subdirectories to save the output for each analysis: 
 - Effect modification analysis: `2-initial-analysis/output`
 - Spatial analysis: `3-secondary-analysis/output`
