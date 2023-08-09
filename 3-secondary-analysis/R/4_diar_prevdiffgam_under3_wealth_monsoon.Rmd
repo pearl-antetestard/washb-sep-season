@@ -21,9 +21,9 @@ knit: (function(inputFile, encoding) {
 
 Here, diarrhea cases prevented by combined WASH per wealth rank were calculated by:
 
-excess diarrhea cases of control vs intervention = proportion of children > 3 years multiplied by the prevalence difference indexed by wealth rank
+excess diarrhea cases of control vs intervention = proportion of children > 3 years multiplied by the prevalence difference indexed by wealth rank during rainy season
 
-GAM estimates were based on the WASH Benefits Bangladesh cluster randomized trial. We used these GAM estimates to extrapolate to the whole country of Bangladesh, while masking for urban areas since the WASHB trial were conducted in rural areas in Gazipur, Mymensingh and Tangail districts.
+GAM estimates were based on the WASH Benefits Bangladesh cluster randomized trial. We used these GAM estimates to extrapolate to the whole country of Bangladesh, while masking for urban areas since the WASHB trial were conducted in rural areas in Gazipur, Kishoreganj, Mymensingh and Tangail districts.
 
 
 ```{r clean environment, echo=FALSE}
@@ -421,23 +421,7 @@ joined.r_2 <- joined.r %>%
 #    8     4     1     3     2     3     1     5     2     1     3     4     2     2     1     1     3     1     1 
 #   82   106 
 #    1     1 
-  mutate(excess_diar_monthly_recoded =
-                                      #ifelse(excess_diar_monthly>=48,48,
-                                      #ifelse(excess_diar_monthly==47,47,
-                                      #ifelse(excess_diar_monthly==46,46,
-                                      #ifelse(excess_diar_monthly==45,45,
-                                      #ifelse(excess_diar_monthly==44,44,
-                                      #ifelse(excess_diar_monthly==43,43,
-                                      #ifelse(excess_diar_monthly==42,42,
-                                      #ifelse(excess_diar_monthly==41,41,
-                                      #ifelse(excess_diar_monthly==40,40,
-                                      #ifelse(excess_diar_monthly==39,39,
-                                      #ifelse(excess_diar_monthly==38,38,
-                                      #ifelse(excess_diar_monthly==37,37,
-                                      #ifelse(excess_diar_monthly>=36,36,
-                                      #ifelse(excess_diar_monthly==35,35,
-                                      #ifelse(excess_diar_monthly==34,34,
-                                      #ifelse(excess_diar_monthly==33,33,
+  mutate(excess_diar_monthly_recoded =                                
                                       ifelse(excess_diar_monthly>=32,32,
                                       ifelse(excess_diar_monthly==31,31,
                                       ifelse(excess_diar_monthly==30,30,
@@ -704,38 +688,6 @@ ggsave(plot_composite, file = here::here("3-secondary-analysis",
                                           "map-composite-bgd-29-gam-wealth-rainy.png"), height=10,width=10)
 
 
-
-#plot_composite_2 <- plot_grid(plot_maskedurban, plot_diar_averted_bgd_gridcell_rural, align = "hv",
-                           #   labels = c("A", "B"))
-
-#plot_composite_2
-
-#ggsave(plot_composite_2, file = here::here("3-secondary-analysis", 
-                                       #   "output",
-                                       #   "map-composite-masked-bgd-2.png"), height=8,width=8)
-
-```
-
-
-```{r save}
-
-# plot
-#ggsave(plot_composite, file = here::here("3-secondary-analysis", 
-                                      #    "output",
-                                       #   "map-diar-under3-wealthrank-bgd-rural.png"), height=8,width=7)
-
-#ggsave(plot_composite_2, file = here::here("3-secondary-analysis", 
-                                         # "output",
-                                         # "map-diar-under3-wealth-gridcell-bgd-rural.png"), height=8,width=7)
-
-# data frame
-#saveRDS(joined_grouped, file = here::here("1-data",
-                            #  "1-temp",
-                            #  "diar-wealthrank-cases-prevented-district-v3.rds"))
-
-#write_csv(joined_grouped, file = here::here("1-data",
-                            #  "1-temp",
-                            #  "diar-wealthrank-cases-prevented-district-v3.csv"))
 ```
 
 
