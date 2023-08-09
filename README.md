@@ -57,7 +57,7 @@ To run the analyses:
 - GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
 - WorldPop population and wealth layers: https://www.worldpop.org/ (save to `1-data/0-worldpop`)
 - TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`)
-5. Create subdirectories to save the output for each analysis: 
+6. Create subdirectories to save the output for each analysis: 
 - Effect modification analysis: `2-initial-analysis/output`
 - Spatial analysis: `3-secondary-analysis/output`
 - Supplementary analysis: `4-supplementary/output`
