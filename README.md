@@ -51,7 +51,7 @@ To run the analyses:
 - `washb-sep-season/1-data/0-worldpop`
 - `washb-sep-season/1-data/1-temp`
 - `washb-sep-season/1-data/1-final`
-3. If you want to reproduce the formatted dataset that contains the created wealth scores, you can download the public raw datasets (`washb-bangladesh-enrol-public.csv`, `washb-bangladesh-tr-public.csv` and `washb-bangladesh-diar-public.csv`) from the WASH Benefits Bangladesh trial from https://osf.io/wvyn4/. Then, save them in the subdirectory `washb-sep-season/1-data/0-untouched`. 
+3. If you want to reproduce the formatted dataset that contains the created wealth and season variables, you can download the public raw datasets (`washb-bangladesh-enrol-public.csv`, `washb-bangladesh-tr-public.csv` and `washb-bangladesh-diar-public.csv`) from the WASH Benefits Bangladesh trial from https://osf.io/wvyn4/. Then, save them in the subdirectory `washb-sep-season/1-data/0-untouched`. 
 4. Otherwise, you can download the formatted data directly from https://osf.io/xwndg/ to skip data management `1-dm` and proceed with the analyses. Save the formatted dataset in `1-data/1-final`.
 4. The Bangladesh geospatial layers can be downloaded from:
 - GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
