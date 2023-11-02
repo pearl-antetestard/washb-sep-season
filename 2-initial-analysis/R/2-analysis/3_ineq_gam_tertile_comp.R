@@ -12,7 +12,7 @@ library(here)
 source(here::here("2-initial-analysis/R", "0-config.R"))
 
 source(here::here("2-initial-analysis/R", "2-analysis",
-                  "1.2-ineq_v4_source.R"), local = T)
+                  "3_ineq_gam_tertile_source.R"), local = T)
 plot_prev_composite
 
 
