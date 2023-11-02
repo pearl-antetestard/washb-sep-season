@@ -42,7 +42,7 @@ library(scales)
 library(ggpubr)
 library(patchwork)
 
-source(here::here("3-secondary-analysis/R", "0-config.R"))
+source(here::here("3-secondary-analysis/R", "0_config.R"))
 
 ```
 
@@ -171,10 +171,10 @@ r.df.sf <- r.df %>%
 st_crs(r.df.sf) <- st_crs(BGD_shp_adm2)
 #r.df.sf_adm2 <- st_join(r.df.sf, st_make_valid(BGD_shp_adm2)) 
 
-ggplot() +
-  geom_sf(data = BGD_shp_adm2) +
-  geom_sf(data = r.df.sf_adm2) +
-  theme_minimal()
+#ggplot() +
+ # geom_sf(data = BGD_shp_adm2) +
+ # geom_sf(data = r.df.sf_adm2) +
+ # theme_minimal()
 
 # some points are out of the polygon, lets filter out
 # so we get only points in the polygon
@@ -199,15 +199,15 @@ st_crs(joined.r) # +proj=longlat +datum=WGS84 +no_defs
 
 ## join the shapefile with the layers for the district estimates
 BGD_shp_adm2_valid <- st_make_valid(BGD_shp_adm2)
-joined <- st_join(bgd_shp_adm2, joined.r) %>%  # spatial join to get intersection of points and poly
+joined <- st_join(BGD_shp_adm2_valid, joined.r) %>%  # spatial join to get intersection of points and poly
   filter(!is.na(layer)) %>%
   filter(!is.na(excess_diar))
 #st_crs(joined) # +proj=longlat +datum=WGS84 +no_defs 
 
-ggplot() +
-  geom_sf(data = bgd_shp_adm2) +
-  geom_sf(data = joined) +
-  theme_minimal()
+#ggplot() +
+#  geom_sf(data = bgd_shp_adm2) +
+#  geom_sf(data = joined) +
+#  theme_minimal()
 
 ```
 
@@ -611,7 +611,14 @@ joined_grouped_rural_adm0 <- joined_grouped_rural %>%
   group_by(COUNTRY) %>%
   mutate(excess_diar_sum_dist = sum(excess_diar_sum, na.rm = T),
          excess_diar_per1000under3 = excess_diar_sum_dist/1000,
-         excess_diar_per1000under3_monthly = excess_diar_per1000under3*4)
+         excess_diar_per1000under3_monthly = excess_diar_per1000under3*4,
+         total_pop_3andunder = sum(pop_3andunder, na.rm = T),
+         combined_se_nat = sum(sqrt(combined_se^2*pop_3andunder)),
+         #combined_se = sum(sqrt(SE^2*pop_3andunder)),
+         ci_upper = excess_diar_sum_dist+1.96*combined_se_nat,
+         ci_upper = (ci_upper/1000)*4,
+         ci_lower = excess_diar_sum_dist-1.96*combined_se_nat,
+         ci_lower = (ci_lower/1000)*4)
 
 joined_grouped_rural_adm0$excess_diar_sum_dist
 joined_grouped_rural_adm0$excess_diar_per1000under3
@@ -684,7 +691,7 @@ plot_composite
 
 ggsave(plot_composite, file = here::here("3-secondary-analysis", 
                                           "output",
-                                          "map-composite-bgd-29-gam-wealth-rainy.png"), height=10,width=10)
+                                          "map-composite-bgd-29-gam-wealth-rainy-astmh.png"), height=10,width=10)
 
 
 ```
