@@ -1,0 +1,163 @@
+---
+title: "Descriptive Statistics by wealth quintiles"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+ # officedown yaml header
+output: word_document
+  #officedown::rdocx_document
+   # theme: default
+    #highlight: default
+    #code_folding: hide
+    #toc: true
+    #toc_depth: 3
+    #toc_float:
+      #collapsed: true
+      #smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("2-initial-analysis/output")
+                          )})
+---
+
+
+```{r clean environment, echo=FALSE}
+
+rm(list=ls(all=TRUE))
+
+```
+
+```{r configuration, echo = FALSE, message=FALSE}
+
+library(here)
+source(here::here("2-initial-analysis/R", "0-config.R"))
+
+```
+
+```{r read formatted data, echo=FALSE}
+
+df_analysis <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds"))
+
+# Only baseline/ survey 0 (1608 children)
+df_analysis_baseline <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
+                       filter(svy==0)
+
+```
+
+
+# Rendering
+
+```{r render EM function, echo=FALSE}
+
+# custom render function for the variables
+# 
+rndr <- function(x, name, ...) {
+    if (!is.numeric(x)) return(render.categorical.default(x))
+    what <- switch(name,
+                      landacre = "Mean (SD)",
+                      walls = "Mean (SD)",
+                      floor = "Mean (SD)",
+                      elec = "Mean (SD)",
+                      asset_radio = "Mean (SD)",
+                      asset_refrig = "Mean (SD)",
+                      asset_bike = "Mean (SD)",
+                      asset_moto = "Mean (SD)",
+                      asset_sewmach = "Mean (SD)",
+                      asset_tv = "Mean (SD)",
+                      asset_wardrobe = "Mean (SD)",
+                      asset_table = "Mean (SD)",
+                      asset_chair = "Mean (SD)",
+                      asset_khat = "Mean (SD)",
+                      asset_chouki = "Mean (SD)",
+                      asset_mobile = "Mean (SD)")
+    parse.abbrev.render.code(c("", what))(x)
+}
+
+```
+
+
+
+# Asset-based characteristics by wealth quintiles
+
+```{r baseline indicators by treatment and SEP, echo=FALSE}
+
+tab2 <- df_analysis_baseline %>%
+  mutate(#Sex = factor(case_when(sex == "male" ~ "Male",
+                              #  sex == "female" ~ "Female")),
+         `Mother's education` = as.factor(momedu),
+         `Wealth quintiles` = factor(case_when(wealth_quintile == 1 ~ "Q1",
+                                               wealth_quintile == 2 ~ "Q2",
+                                               wealth_quintile == 3 ~ "Q3",
+                                               wealth_quintile == 4 ~ "Q4",
+                                               wealth_quintile == 5 ~ "Q5")), 
+         walls = as.numeric(walls),
+         floor = as.numeric(floor),
+         elec = as.numeric(floor),
+         asset_radio = as.numeric(asset_radio),
+         asset_refrig = as.numeric(asset_refrig),
+         asset_bike = as.numeric(asset_bike),
+         asset_moto = as.numeric(asset_moto),
+         asset_sewmach = as.numeric(asset_sewmach),
+         asset_tv = as.numeric(asset_tv),
+         asset_wardrobe = as.numeric(asset_wardrobe),
+         asset_table = as.numeric(asset_table),
+         asset_chair = as.numeric(asset_chair),
+         asset_khat = as.numeric(asset_khat),
+         asset_chouki = as.numeric(asset_chouki),
+         asset_mobile = as.numeric(asset_mobile)
+         ) %>%
+  labelled::set_variable_labels(#agedays = "Age (days)",
+                      momage = "Mother's age",
+                      Nhh = "Mean number of persons per HH", 
+                      Ncomp = "Mean number of persons in compound",
+                      wealthscore = "Wealth scores",
+                      landacre = "Land in acres",
+                      walls = "Improved wall material (wood, brick, thin)",
+                      floor = "Improved floor (wood, concrete)",
+                      elec = "Household has electricity",
+                      asset_radio = "Household has radio",
+                      asset_refrig = "Household has refrigerator",
+                      asset_bike = "Household has bicycle",
+                      asset_moto = "Household has motorcycle",
+                      asset_sewmach = "Household has sewing machine",
+                      asset_tv = "Has BW or color TV",
+                      asset_wardrobe = "Has >=1 wardrobe",
+                      asset_table = "Has >=1 table",
+                      asset_chair = "Has >=1 chair",
+                      asset_khat = "Has >=1 khat",
+                      asset_chouki = "Has >=1 chouki",
+                      asset_mobile = "Has >=1 mobile"
+                      ) %>%
+# render
+table1(~  #Asset-based variables within the wealth index 
+          landacre + walls + floor + elec + asset_radio + asset_refrig + asset_bike + asset_moto +
+          asset_sewmach + asset_tv + asset_wardrobe + asset_table + asset_chair + asset_khat + asset_chouki +
+          asset_mobile
+          #`Improved wall material (wood, brick, thin)` + 
+          #`Improved floor (wood, concrete)` +
+          #`Household has electricity` + `Household has refrigerator` + `Household has bicycle` +
+          #`Household has motorcycle` + `Household has sewing machine` + `Has BW or color TV` + 
+          #`Has >=1 wardrobe` + `Has >=1 table` + `Has >=1 chair` + `Has >=1 khat` + `Has >=1 chouki` +
+          #`Has >=1 mobile` 
+          | `Wealth quintiles`, data = ., overall = F, 
+          rowlabelhead = "Asset-based characteristics included in the wealth index",
+          render = rndr, topclass="Rtable1-grid Rtable1-shade"
+          ) 
+
+#tab2 
+
+knitr::kable(tab2, digits = 1)
+
+              
+```
+
+
+
+
+# Session Info
+```{r session info}
+sessionInfo()
+```
+
