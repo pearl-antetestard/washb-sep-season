@@ -11,8 +11,10 @@
 library(here)
 source(here::here("2-initial-analysis/R", "0-config.R"))
 
+#source(here::here("2-initial-analysis/R", "2-analysis",
+                  #"3_ineq_gam_tertile_source.R"), local = T)
 source(here::here("2-initial-analysis/R", "2-analysis",
-                  "3_ineq_gam_tertile_source.R"), local = T)
+                  "3_ineq_gam_tertile_glm_source.R"), local = T)
 plot_prev_composite
 
 
@@ -255,10 +257,7 @@ plot_gam_tertile <- plot_grid(plot_prev_comp, plot_ratio_comp, plot_diff_comp,
                              # ncol = 1)
 
 ggsave(plot_gam_tertile, file = here::here("2-initial-analysis", "output",
-                                           "plot_effectmod_sep_gam_tertiles_v5.png"), height=6.5,width=6.5)
+                                           "plot_effectmod_sep_gam_tertiles_glm.png"), height=6.5,width=6.5)
 
 ggsave(plot_gam_tertile, file = here::here("2-initial-analysis", "output",
-                                               "plot_effectmod_sep_gam_tertiles_v4_poster.jpg"), height=7,width=7)
-
-ggsave(plot_gam_tertile, file = here::here("2-initial-analysis", "output",
-                                           "plot_effectmod_sep_gam_tertiles_v3.pdf"), height=13,width=11)
+                                               "plot_effectmod_sep_gam_tertiles_glm.pdf"), height=6.5,width=6.5)
