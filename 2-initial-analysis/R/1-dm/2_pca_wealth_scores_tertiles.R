@@ -15,20 +15,15 @@ rm(list=ls(all=TRUE))
 library(here)
 here::here()
 
-# Read asv file
-
+# Read csv file
 df <- read.csv(file = here::here("1-data", "0-untouched",
                                                   "washb-bangladesh-enrol-public.csv"))
 
 # Vector of variables needed for the function asset_PCA
+# removed "asset_phone" because not enough variation
+# removed asset_tvbw and asset_tvcol, because they're redundant with asset_tv and cement which is the same with floor
 
-#varlist = c("landacre","tubewell","storewat","latown","latslab","latseal","roof","walls","floor",
-           # "elec","asset_radio","asset_refrig","asset_bike","asset_moto",
-           # "asset_sewmach","asset_tv","asset_wardrobe","asset_table","asset_chair","asset_clock",
-            #"asset_khat","asset_chouki","asset_mobile") #removed "asset_phone" because not enough variation
-###removed asset_tvbw and asset_tvcol, because they're redundant with asset_tv and cement which is the same with floor
-
-### removing all WASH-related vars
+# no WASH-related vars
 varlist = c("landacre","roof","walls","floor",
             "elec","asset_radio","asset_refrig","asset_bike","asset_moto",
             "asset_sewmach","asset_tv","asset_wardrobe","asset_table","asset_chair","asset_clock",
@@ -58,13 +53,13 @@ assetPCA<-function(df, varlist, varlist_fac, stat_vars, reorder=F ){
 
 #Subset to only needed variables for subgroup analysis
 ret <- df %>%
-  subset(select=c(varlist)) ###30 vars including 4 ids
+  subset(select=c(varlist)) ## 22 vars including 4 ids
 
 #Select assets
 ret<-as.data.frame(ret) 
 id<-subset(df, select=c("dataid","clusterid","hhid","block")) ###only ID
 ret_assets_comp<-ret[,which(!(colnames(ret) %in% c("dataid","clusterid","hhid","block")))] ###only asset vars
-ret_assets_comp[,c(2:17)] <- lapply(ret_assets_comp[,c(2:17)], factor)
+ret_assets_comp[,c(2:18)] <- lapply(ret_assets_comp[,c(2:18)], factor)
 
 
 #Replace character blank with NA
@@ -84,7 +79,7 @@ for(i in 1:ncol(ret_assets_comp)){
   print(class((ret_assets_comp[,i])))
 }
 
-#### asset_clock has 2859 (vs 2692) NAs, latslab has 238 (vs 5313) NAs, latseal has 880 (vs 4871) NAs
+#### asset_clock has 2859 (vs 2692) NAs
 
 ### removing asset_clock
 #cols.dont.want <- c("asset_clock","latseal")
@@ -116,10 +111,7 @@ ret_assets_comp[,2:length(ret_assets_comp)]<-droplevels(ret_assets_comp[,2:lengt
 
 Formula <- as.character(paste("~", "ret_assets_comp[,",2,"]", sep=''))
 for (i in 3:length(varlist_fac)) {
-  #if(i==3){Formula<-as.character(paste(Formula,"ret_assets_comp[,",i,"]",sep=""))}
-  #if(i!=3){
   Formula<-as.character(paste(Formula,"+","ret_assets_comp[,",i,"]",sep=""))
-  #}
 }
 Formula<-as.formula(Formula)
 
@@ -131,7 +123,7 @@ ret_assets_compm <- data.frame(ret_assets_comp[, ! colnames(ret_assets_comp) %in
 #Remove columns with almost no variance
 if(length(nearZeroVar(ret_assets_compm))>0){
   ret_assets_compm <-ret_assets_compm[,-nearZeroVar(ret_assets_compm)]
-} ####asset_radio and "roof" got removed
+} ## asset_radio and "roof" got removed
 
 ## Convert the data into matrix ##
 ret_assets_compm <-as.matrix(ret_assets_compm)
@@ -200,30 +192,36 @@ return(as.data.frame(d))
 
 d <- assetPCA(df, varlist = varlist, varlist_fac = varlist_fac, stat_vars = stat_vars, reorder = F)
 
-# Save dataframe as RDS file
-## Only with wealth scores and tertiles
+##############################
+# Section 3 ##################
+##############################
+
+# Saving files
+
+# Only with wealth scores and tertiles
 saveRDS(d, here::here("1-data", "2-final",
                       "pca_tertiles_scores_nowashchar.rds"))
 
 
-# Merging with the formatted dataset
+# Reading the rds file with wealth scores and tertiles
 pca_wealth <- readRDS(here::here("1-data", "2-final",
                                  "pca_tertiles_scores_nowashchar.rds"))
-## Merge and save with household data at enrollment/ survey 0 (5551 households)
+
+# Merge and save with household data at enrollment/ survey 0 (5551 households)
 df_withwealth <- inner_join(pca_wealth, df, by=c("dataid","clusterid","hhid","block"))
 saveRDS(df_withwealth, here::here("1-data", "2-final",
                                   "enrol_diar_tr_wealth_household.rds"))
 
-## Merge and save with individual data (8440 children, surveys 1 and 2 only)
+# Merge and save with individual data (8440 children, surveys 1 and 2 only)
 df_nowealth <- readRDS(here::here("1-data", "2-final",
                                   "enrol_diar_tr_formatted.rds"))
 df_all <- inner_join(pca_wealth, df_nowealth, by=c("dataid","clusterid","hhid","block"))
 saveRDS(df_all, here::here("1-data", "2-final",
                       "enrol_diar_tr_wealth_indiv.rds"))
 
-## Merge and save with individual data (10048 children, surveys 0,1,2)
+# Merge and save with individual data (10048 children, surveys 0,1,2)
 df_nowealth_svy012 <- readRDS(here::here("1-data", "2-final",
                                   "enrol_diar_tr_surv012_formatted.rds"))
-df_all_svy012 <- inner_join(pca_wealth, df_nowealth_svy012, by=c("dataid","clusterid","hhid","block"))
+df_all_svy012 <- left_join(df_nowealth_svy012, pca_wealth, by=c("dataid","clusterid","hhid","block"))
 saveRDS(df_all_svy012, here::here("1-data", "2-final",
                            "enrol_diar_tr_wealth_indiv_svy012.rds"))
