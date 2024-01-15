@@ -49,11 +49,11 @@ df_enrol_tr_diar <- left_join(df_enrol_tr, df_diar, by=c("clusterid","block","da
 ## children with missing outcome data (diar7d)
 ## W, S, H and N single arms
 
-ad <- (df %>% 
-         filter(!is.na(diar7d)) %>%
-         filter(gt36mos==0) %>%
+ad <- (df_enrol_tr_diar %>% 
+         filter(!is.na(diar7d)) %>% # remove NAs
+         filter(gt36mos==0) %>% # siblings who were >36 mos at enrollment
          #filter(svy!=0) %>%
-         filter(tr!="Nutrition") %>%
+         filter(tr!="Nutrition") %>% # remove W, S, H and N single arms
          filter(tr!="Water") %>%
          filter(tr!="Sanitation") %>%
          filter(tr!="Handwashing"))
