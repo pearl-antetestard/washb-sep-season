@@ -18,13 +18,13 @@ source(here::here("2-initial-analysis/R", "0-config.R"))
 
 # Read csv files
 
-df_1 <- read_csv(file = here::here("1-data", "0-untouched",
+df_enrol <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-enrol-public.csv"))
 
-df_2 <- read_csv(file = here::here("1-data", "0-untouched",
+df_tr <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-tr-public.csv"))
 
-df_3 <- read_csv(file = here::here("1-data", "0-untouched",
+df_diar <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-diar-public.csv"))
 
 
@@ -34,8 +34,8 @@ df_3 <- read_csv(file = here::here("1-data", "0-untouched",
 
 # Join dataframes
 
-df <- inner_join(df_1, df_2, by=c("clusterid","block"))
-df <- inner_join(df, df_3, by=c("clusterid","block","dataid"))
+df_enrol_tr <- left_join(df_enrol, df_tr, by=c("clusterid","block"))
+df_enrol_tr_diar <- left_join(df_enrol_tr, df_diar, by=c("clusterid","block","dataid"))
 
 
 ##############################
