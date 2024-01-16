@@ -60,21 +60,13 @@ df_analysis_svy12 <- df_analysis_svy12 %>%
   mutate(block=factor(block),
   diar7df=factor(diar7d),
   wealth_tertilef=factor(wealth_tertile, levels = c(1,2,3)),
-  Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention")),
-  monsoonf = ifelse(svyyear.y == "2014" & #svyyear.y comprises of 2013, 2014 and 2015
-                   svyweek.y >= 22 & # http://www.week-number.net/calendar-with-week-numbers-2015.html
-                   svyweek.y <= 39, 1,
-            ifelse(svyyear.y == "2015" &
-                   svyweek.y >= 14 &
-                   svyweek.y <= 39, 1, 0)),
-  monsoon.f = factor(monsoonf, levels = c(0,1), labels = c("dry","monsoon"))
+  Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention"))
   )
 
 #table(df_analysis_svy12$svyyear.y, df_analysis_svy12$svyweek.y)
-table(df_analysis_svy12$monsoon.f)
+table(df_analysis_svy12$monsoon)
 table(df_analysis_svy12$Arms)
 ```
-
 
 ## Estimating diarrhea prevalence per wealth tertile and monsoon season in the 2 arms
 
@@ -87,8 +79,8 @@ df_analysis_svy12 <- df_analysis_svy12 %>%
     TRUE ~ as.numeric(NA)
   ),
     monsoon_n = case_when(
-      monsoon.f == "dry" ~ 0,
-      monsoon.f == "monsoon" ~ 1,
+      monsoon == "0" ~ 0,
+      monsoon == "1" ~ 1,
       TRUE ~ as.numeric(NA)
     ))
 
@@ -107,7 +99,7 @@ print(prev_diar)
 ## Estimating PRs (Control/Intervention) and 95% CIs using log binomial
 
 
-```{r glm}
+```{r glm mod}
 
 # releving the variable Arms with the intervention arm as reference
 # rationale: there were more diarrhea prevalence in the control arm
@@ -115,9 +107,9 @@ df_analysis_svy12$Arms <- relevel(df_analysis_svy12$Arms, ref = "Intervention")
 
 # modeling a glm fit with 3-way interaction
 # using the numeric diar7d for log binomial
-glm_int_log <- glm(diar7df ~  Arms + wealth_tertilef + monsoon.f +
-                       wealth_tertilef*Arms + monsoon.f*Arms +
-                       wealth_tertilef*monsoon.f*Arms,
+glm_int_log <- glm(diar7df ~  Arms + wealth_tertilef + monsoon +
+                       wealth_tertilef*Arms + monsoon*Arms +
+                       wealth_tertilef*monsoon*Arms,
             family = binomial(link="log"),
             data = df_analysis_svy12)
 summary(glm_int_log)
@@ -129,14 +121,13 @@ glmfitlog_robust_vcov <- vcov(glm_int_log, cluster=df_analysis_svy12$block)
 glmfitlog_lin_robustse <- coeftest(glm_int_log, vcov. =  glmfitlog_robust_vcov)
 print(glmfitlog_lin_robustse)
 
-# modeling a geeglm fit without 3-way interaction
-glm_noint_log <- glm(diar7df ~ Arms + wealth_tertilef + monsoon.f +
-                       wealth_tertilef*Arms + monsoon.f*Arms,
+# modeling a glm fit without 3-way interaction
+glm_noint_log <- glm(diar7df ~ Arms + wealth_tertilef + monsoon +
+                       wealth_tertilef*Arms + monsoon*Arms,
             family = binomial(link="log"),
             data = df_analysis_svy12)
 summary(glm_noint_log)
 print(coeftest(glm_noint_log, vcov. =  glmfitlog_robust_vcov))
-
 
 # wald test to compare the models with and without 3-way interaction
 wald_pr <- waldtest(glm_int_log, glm_noint_log, vcov = glmfitlog_robust_vcov) 
@@ -254,9 +245,9 @@ print(dat_monsoon_pr)
 
 # modeling a glm fit with 3-way interaction
 # using the factor diar7df for glm
-glm_int_iden <- glm(diar7df ~ Arms + wealth_tertilef + monsoon.f +
-                       wealth_tertilef*Arms + monsoon.f*Arms +
-                       wealth_tertilef*monsoon.f*Arms,
+glm_int_iden <- glm(diar7df ~ Arms + wealth_tertilef + monsoon +
+                       wealth_tertilef*Arms + monsoon*Arms +
+                       wealth_tertilef*monsoon*Arms,
             family = binomial(link="identity"),
             data = df_analysis_svy12
             )
@@ -270,8 +261,8 @@ glmfit_lin_robustse <- coeftest(glm_int_iden,vcov. =  glmfit_robust_iden_vcov)
 print(glmfit_lin_robustse)
 
 # modeling a glm fit without an interaction
-glm_no3int_iden <- glm(diar7df ~ Arms + wealth_tertilef + monsoon.f +
-                       wealth_tertilef*Arms + monsoon.f*Arms,
+glm_no3int_iden <- glm(diar7df ~ Arms + wealth_tertilef + monsoon +
+                       wealth_tertilef*Arms + monsoon*Arms,
             family = binomial(link="identity"),
             data = df_analysis_svy12
             )
@@ -639,10 +630,10 @@ plot_prev_composite
 ```{r}
 
 ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                      "plot_effectmodsepmonsoon_glm.pdf"), height=6,width=3)
+                      "plot_effectmodsepmonsoon_glm.pdf"), height=200, width=180, units="mm")
 
-ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                      "plot_effectmodsepmonsoon_glm.png"), height=6,width=3)
+#ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
+                      #"plot_effectmodsepmonsoon_glm.png"), height=6,width=3)
 
 ```
 
