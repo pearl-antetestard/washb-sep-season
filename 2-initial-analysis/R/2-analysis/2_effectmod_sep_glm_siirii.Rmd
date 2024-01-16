@@ -1,0 +1,232 @@
+---
+title: "Measuring inequalities: RII and SII"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: default
+    highlight: default
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("2-initial-analysis/output")
+                          )})
+---
+
+```{r setup, include=FALSE}
+library(mgcv)
+library(ggeffects)
+library(DHARMa)
+library(mgcViz)
+library(geepack)
+library(msm)
+library(tidymv)
+#remotes::install_github("stefanocoretta/tidygam@devel")
+library(tidygam)
+library(cowplot)
+library(ggpubr)
+library(lmtest)
+library(sandwich)
+library(gridExtra)
+library(RColorBrewer)
+```
+
+```{r clean environment, echo=FALSE}
+
+rm(list=ls(all=TRUE))
+```
+
+```{r configuration, message=FALSE}
+
+library(here)
+source(here::here("2-initial-analysis/R", "0-config.R"))
+```
+
+```{r read formatted data, message=FALSE}
+
+# Surveys 1 and 2 (8440 children)
+df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
+                      "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
+                       filter(svy!=0)
+```
+
+```{r data, message=FALSE}
+
+df_analysis_svy12 <- df_analysis_svy12 %>%
+  mutate(wealth_rank = rank(wealthscore)/nrow(.),
+  block=factor(block),
+  wealth_tertile=factor(wealth_tertile),
+  diar7df=factor(diar7d),
+  Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention")))
+
+#summary(df_analysis_svy12$wealth_rank)
+#str(df_analysis_svy12$diar7d)
+```
+
+## Estimating diarrhea prevalence per wealth tertile in the 2 arms
+
+```{r diarrhea prevalence by arm}
+
+df_analysis_svy12 <- df_analysis_svy12 %>%
+  mutate(diar7d = case_when(
+    diar7df == "0" ~ 0,
+    diar7df == "1" ~ 1,
+    TRUE ~ as.numeric(NA)
+  ))
+
+str(df_analysis_svy12$diar7d)
+
+prev_diar <- df_analysis_svy12 %>%                         
+  group_by(Arms, wealth_tertile) %>%         
+  summarise_at(vars(diar7d),                  
+               list(length = length, sum = sum, mean = mean, sd = sd)) 
+
+print(prev_diar)
+```
+
+## RII and SII estimates from the glm model
+
+Here, used wealth_rank in the model.
+
+RII > 1 or SII > 0: diarrhea prev is higher among the poor than the rich; 
+RII = 1 or SII = 0: no inequality
+
+```{r RII and SII}
+
+# control
+df_control <- df_analysis_svy12 %>%
+  filter(Arms == "Control")
+
+glm_c <- glm(diar7df ~ wealth_rank,
+            family = binomial(link="log"),
+            data = df_control)
+
+# get the var-cov matrix
+glm_c_robust_vcov <- vcov(glm_c, cluster=df_control$block)
+
+# update regression fit
+glm_c_lin_robustse <- coeftest(glm_c, vcov. =  glm_c_robust_vcov)
+#glm_c_lin_robustse
+
+# RII
+# Here, since the outcome is unfavorable, the formula is intercept-(intercept+slope).
+beta_glm_c = coef(glm_c_lin_robustse)[1] - (coef(glm_c_lin_robustse)[1]+coef(glm_c_lin_robustse)[2])
+RII_glm_c = exp(beta_glm_c)
+# 95% CI: based on wald interval
+se_b1 = glm_c_lin_robustse[2,2]; #se_b1
+RII_low<-exp(beta_glm_c-1.96*se_b1)#; RII_low
+RII_up<-exp(beta_glm_c+1.96*se_b1)#; RII_up
+
+# SII
+SII_glm_c = exp(coef(glm_c_lin_robustse)[1]) - exp(coef(glm_c_lin_robustse)[1]+coef(glm_c_lin_robustse)[2])
+# 95% CI: based on the delta method
+b <- coef(glm_c_lin_robustse)
+#v = vcov(glm_c_robust_vcov)
+SII_sd = deltamethod(~exp(x1)-exp(x1+x2),b,glm_c_robust_vcov) 
+SII_low<-SII_glm_c-1.96*SII_sd#; SII_low
+SII_up<-SII_glm_c+1.96*SII_sd#; SII_up
+
+#-----------------------------------------------------------------------------
+
+# intervention
+df_interv <- df_analysis_svy12 %>%
+  filter(Arms == "Intervention")
+
+glm_i <- glm(diar7df ~ wealth_rank,
+            family = binomial(link="log"),
+            data = df_interv)
+
+# get the var-cov matrix
+glm_i_robust_vcov <- vcov(glm_i, cluster=df_interv$block)
+
+# update regression fit
+glm_i_lin_robustse <- coeftest(glm_i, vcov. =  glm_i_robust_vcov)
+#glm_c_lin_robustse
+
+
+# RII
+# Here, since the outcome is unfavorable, the formula is intercept-(intercept+slope).
+beta_glm_i = coef(glm_i_lin_robustse)[1] - (coef(glm_i_lin_robustse)[1]+coef(glm_i_lin_robustse)[2])
+RII_glm_i = exp(beta_glm_i)
+# 95% CI: based on wald interval
+se_b1_i = glm_i_lin_robustse[2,2]
+RII_low_i<-exp(beta_glm_i-1.96*se_b1_i)
+RII_up_i<-exp(beta_glm_i+1.96*se_b1)
+
+# SII
+SII_glm_i = exp(coef(glm_i_lin_robustse)[1]) - exp(coef(glm_i_lin_robustse)[1]+coef(glm_i_lin_robustse)[2])
+# 95% CI: based on the delta method
+b_i <- coef(glm_i_lin_robustse)
+#v = vcov(glm_c_robust_vcov)
+SII_sd_i = deltamethod(~exp(x1)-exp(x1+x2),b_i,glm_i_robust_vcov) 
+SII_low_i<-SII_glm_i-1.96*SII_sd_i
+SII_up_i<-SII_glm_i+1.96*SII_sd_i
+
+#-----------------------------------------------------------------------------
+
+# creating a dataframe with the estimates 
+RII <- c(RII_glm_c, RII_glm_i)
+RII_lower <- c(RII_low, RII_low_i)
+RII_upper <- c(RII_up, RII_up_i)
+SII <- c(SII_glm_c, SII_glm_i)
+SII_lower <- c(SII_low, SII_low_i)
+SII_upper <- c(SII_up, SII_up_i)
+
+ineq_tab <- data.frame(RII, RII_lower, RII_upper, SII, SII_lower, SII_upper)
+ineq_tab$Arms <- c("Control", "Intervention")
+print(ineq_tab)
+```
+
+## Plotting RII and SII 
+
+RII > 1 or SII > 0: diarrhea prev is higher among the poor than the rich; 
+RII = 1 or SII = 0: no inequality
+
+```{r plotting RII and SII}
+
+plot_rii_sii <- ggplot(ineq_tab, aes(SII, RII, fill=Arms)) +
+                scale_fill_manual(values = c('#E69F00', 'turquoise')) +
+                geom_linerange(aes(ymin = RII_lower, ymax = RII_upper)) +
+                scale_y_continuous(breaks=c(0.5,1,1.5,2,2.5,3), trans = "log") +
+                geom_linerange(aes(xmin = SII_lower, xmax = SII_upper)) +
+                geom_point(aes(fill=Arms), shape = 21, size = 3, 
+                      #position = position_dodge(width = 0.4)
+                      ) +
+                geom_hline(yintercept = 1, linetype="dotted") +
+                geom_vline(xintercept = 0, linetype="dotted") +
+                #coord_flip() +
+                #theme(legend.position = "top") +
+                labs(x = "Slope Index of Inequality (95% Confidence Interval)", 
+                     y = "Relative Index of Inequality (95% Confidence Interval)", 
+                     title = "Wealth-related inequality indicators") +
+                guides(col = "none")+
+                theme_bw() +
+                theme(legend.position = c(0.8,0.9),
+                   legend.title = element_blank(),
+                   legend.key.size = unit(0.05, 'cm'),
+                   text = element_text(size=8)) 
+plot_rii_sii
+
+```
+
+```{r save}
+
+ggsave(plot_rii_sii, file = here::here("2-initial-analysis", "output",
+                      "plot_riisii_glm.pdf"), height=90, width=88, units = "mm")
+
+ggsave(plot_rii_sii, file = here::here("2-initial-analysis", "output",
+                      "plot_riisii_glm.png"),  height=90, width=88, units = "mm")
+
+```
+
+
+```{r session info}
+
+sessionInfo()
+```
