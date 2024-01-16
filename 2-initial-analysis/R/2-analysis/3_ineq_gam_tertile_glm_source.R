@@ -34,7 +34,6 @@ df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
                                                "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
                      filter(svy!=0)
 
-
 df_analysis_svy12 <- df_analysis_svy12 %>%
   mutate(wealth_rank = rank(wealthscore)/nrow(.),
          block=factor(block),
@@ -83,7 +82,7 @@ glmfitlog_robust_vcov <- vcov(glm_int_log, cluster=df_analysis_svy12$block)
 glmfitlog_lin_robustse <- coeftest(glm_int_log, vcov. =  glmfitlog_robust_vcov)
 print(glmfitlog_lin_robustse)
 
-# modeling a log binomial fit with interaction
+# modeling a log binomial fit without interaction
 glm_noint_log <- glm(diar7df ~ wealth_tertile + Arms,
                      family = binomial(link="log"),
                      data = df_analysis_svy12)
@@ -317,7 +316,7 @@ plot_prev <- ggplot(data = dat_prev,
         text = element_text(size=7.5))
 
 # plotting PR control/intervention
-gee_plot_pr <- ggplot(dat, aes(Tertile, PR)) + 
+glm_plot_pr <- ggplot(dat, aes(Tertile, PR)) + 
   geom_errorbar(aes(ymin=lower, ymax=upper#, color = Tertile
   ), 
   width = 0.06, linewidth = 0.6, position = position_dodge(width = 0.4)) +
@@ -354,7 +353,7 @@ glm_plot_pd <- ggplot(dat_pd, aes(Tertile, PD)) +
 
 #plot_composite <- plot_grid(gee_plot_pr, glm_plot_pd, nrow=1, ncol=2)
 
-plot_prev_composite <- plot_grid(plot_prev, gee_plot_pr,glm_plot_pd, ncol=1, 
+plot_prev_composite <- plot_grid(plot_prev, glm_plot_pr,glm_plot_pd, ncol=1, 
                                  nrow=3#, bottom = quote("Wealth index tertiles")
 )
 #plot_prev_composite <- plot_grid(plot_prev,glm_plot_pd, ncol=1, 
