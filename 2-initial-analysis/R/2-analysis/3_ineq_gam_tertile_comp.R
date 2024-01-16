@@ -5,7 +5,7 @@
 
 
 # clean environment
-#rm(list=ls(all=TRUE))
+rm(list=ls(all=TRUE))
 
 # configuration
 library(here)
