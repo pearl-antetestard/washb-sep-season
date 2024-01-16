@@ -60,17 +60,11 @@ df_analysis_svy12 <- df_analysis_svy12 %>%
   mutate(block=factor(block),
   diar7df=factor(diar7d),
   Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention")),
-  monsoonf = ifelse(svyyear.y == "2014" & #svyyear.y comprises of 2013, 2014 and 2015
-                   svyweek.y >= 22 & # http://www.week-number.net/calendar-with-week-numbers-2015.html
-                   svyweek.y <= 39, 1,
-            ifelse(svyyear.y == "2015" &
-                   svyweek.y >= 14 &
-                   svyweek.y <= 39, 1, 0)),
-  monsoon.f = factor(monsoonf, levels = c(0,1), labels = c("dry","monsoon"))
   )
 
-table(df_analysis_svy12$svyyear.y, df_analysis_svy12$svyweek.y)
-table(df_analysis_svy12$monsoon.f)
+table(df_analysis_svy12$svyyear, df_analysis_svy12$svyweek)
+table(df_analysis_svy12$svy, df_analysis_svy12$svyweek)
+table(df_analysis_svy12$monsoon)
 ```
 
 ## Estimating diarrhea prevalence per monsoon season in the 2 arms
@@ -84,8 +78,8 @@ df_analysis_svy12 <- df_analysis_svy12 %>%
     TRUE ~ as.numeric(NA)
   ),
     monsoon_n = case_when(
-      monsoon.f == "dry" ~ 0,
-      monsoon.f == "monsoon" ~ 1,
+      monsoon == 0 ~ 0,
+      monsoon == 1 ~ 1,
       TRUE ~ as.numeric(NA)
     ))
 
@@ -110,7 +104,7 @@ print(prev_diar)
 df_analysis_svy12$Arms <- relevel(df_analysis_svy12$Arms, ref = "Intervention")
 
 # modeling a log binomial fit with interaction
-glm_int_log <- glm(diar7df ~ monsoon.f + Arms + monsoon.f*Arms,
+glm_int_log <- glm(diar7df ~ monsoon + Arms + monsoon*Arms,
             family = binomial(link="log"),
             data = df_analysis_svy12)
 summary(glm_int_log)
@@ -123,7 +117,7 @@ glmfitlog_lin_robustse <- coeftest(glm_int_log, vcov. =  glmfitlog_robust_vcov)
 print(glmfitlog_lin_robustse)
 
 # modeling a log binomial fit with interaction
-glm_noint_log <- glm(diar7df ~ monsoon.f + Arms,
+glm_noint_log <- glm(diar7df ~ monsoon + Arms,
             family = binomial(link="log"),
             data = df_analysis_svy12)
 summary(glm_noint_log)
@@ -180,7 +174,7 @@ print(dat)
 
 # modeling a glm fit with interaction
 # using the factor diar7df for glm
-glm_int_iden <- glm(diar7df ~ monsoon.f + Arms + monsoon.f*Arms,
+glm_int_iden <- glm(diar7df ~ monsoon + Arms + monsoon*Arms,
             family = binomial(link="identity"),
             data = df_analysis_svy12
             )
@@ -194,7 +188,7 @@ glmfit_lin_robustse <- coeftest(glm_int_iden,vcov. =  glmfit_robust_iden_vcov)
 print(glmfit_lin_robustse)
 
 # modeling a glm fit without an interaction
-glm_noint_iden <- glm(diar7df ~ monsoon.f + Arms,
+glm_noint_iden <- glm(diar7df ~ monsoon + Arms,
             family = binomial(link="identity"),
             data = df_analysis_svy12
             )
@@ -224,7 +218,7 @@ PD_dry_lower <- logPD_dry-1.96*logPD_dry_se
 PD_1_upper <- logPD_dry+1.96*logPD_dry_se
 #PD_dry; PD_dry_lower; PD_dry_upper
 dat_pd_dry <- data.frame(logPD_dry, PD_dry_lower, PD_1_upper)
-dat_pd_dry$monsoonf <- "dry"
+dat_pd_dry$monsoon <- "dry"
 colnames(dat_pd_dry) <- c("PD", "lower", "upper", "season")
 
 lincom_pd <- c(0,0,1,1)
@@ -234,7 +228,7 @@ PD_wet_lower <- logPD_wet-1.96*logPD_wet_se
 PD_wet_upper <- logPD_wet+1.96*logPD_wet_se
 #PR_wet; PR_wet_lower; PR_wet_upper
 dat_pd_wet <- data.frame(logPD_wet, PD_wet_lower, PD_wet_upper)
-dat_pd_wet$monsoonf <- "monsoon"
+dat_pd_wet$monsoon <- "monsoon"
 colnames(dat_pd_wet) <- c("PD", "lower", "upper", "season")
 
 # merging dataframes
