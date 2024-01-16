@@ -19,9 +19,6 @@ plot_prev_composite
 
 
 # data
-#df_analysis <- readRDS(file = here::here("1-data", "2-final",
-#"enrol_diar_tr_wealth_indiv_svy012.rds"))
-
 # Surveys 1 and 2 (8440 children)
 df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
                                                "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
@@ -85,7 +82,6 @@ summary(mod_gam_2)
 # get the smooth difference
 # codes for get_smooths_difference: https://github.com/stefanocoretta/tidymv/blob/main/R/plotting.R 
 # that uses the get_difference function (https://github.com/stefanocoretta/tidymv/blob/main/R/imported-fun.R)
-# computes simultaneous CIs which follows Gavin Simpson's: https://fromthebottomoftheheap.net/2016/12/15/simultaneous-interval-revisited/
 
 # smooth difference
 gam_diff <- get_smooths_difference(mod_gam_1, wealth_rank, difference = list(Arms = c("Control",
@@ -257,7 +253,7 @@ plot_gam_tertile <- plot_grid(plot_prev_comp, plot_ratio_comp, plot_diff_comp,
                              # ncol = 1)
 
 ggsave(plot_gam_tertile, file = here::here("2-initial-analysis", "output",
-                                           "plot_effectmod_sep_gam_tertiles_glm.png"), height=6.5,width=6.5)
+                                           "plot_effectmod_sep_gam_tertiles_glm.png"), height=210, width=180, units = "mm")
 
 ggsave(plot_gam_tertile, file = here::here("2-initial-analysis", "output",
-                                               "plot_effectmod_sep_gam_tertiles_glm.pdf"), height=6.5,width=6.5)
+                                               "plot_effectmod_sep_gam_tertiles_glm.pdf"), height=210, width=180, units = "mm")
