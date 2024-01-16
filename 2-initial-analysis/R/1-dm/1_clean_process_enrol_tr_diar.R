@@ -20,6 +20,7 @@ source(here::here("2-initial-analysis/R", "0-config.R"))
 
 df_enrol <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-enrol-public.csv"))
+df_enrol <- subset(df_enrol, select = -c(svyweek, svyyear))
 
 df_tr <- read_csv(file = here::here("1-data", "0-untouched",
                                    "washb-bangladesh-tr-public.csv"))
@@ -72,17 +73,16 @@ df_recoded <- ad %>%
                             tr ==  "WSH", 1,
                           ifelse(tr == "Control", 0, NA)),
          tr_comb = as.factor(tr_comb),
-         monsoon = ifelse(svy == 1 &
-                            svyweek.x >= 22 & # http://www.week-number.net/calendar-with-week-numbers-2015.html
-                            svyweek.x <= 39, 1,
-                          ifelse(svy == 2 &
-                                   svyweek.y >= 14 &
-                                   svyweek.y <= 39, 1, 0)),
+         monsoon = ifelse(svy == 1 & svyyear == "2014" &
+                            svyweek >= 22 & # http://www.week-number.net/calendar-with-week-numbers-2015.html
+                            svyweek <= 39, 1,
+                          ifelse(svy == 2 & svyyear == "2015" &
+                                   svyweek >= 14 &
+                                   svyweek <= 39, 1, 0)),
           monsoon = as.factor(monsoon))
 
 table(df_recoded$tr_comb, useNA = "always")
 table(df_recoded$monsoon, useNA = "always")
-
 
 # Export dataframe as RDS
 
