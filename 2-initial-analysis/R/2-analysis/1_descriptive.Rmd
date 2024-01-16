@@ -49,16 +49,6 @@ df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
                       "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
                        filter(svy!=0) 
 
-df_analysis_svy12 <- df_analysis_svy12 %>%
-  mutate(monsoonf = ifelse(svy == 1 &
-                            svyweek.x >= 22 & # http://www.week-number.net/calendar-with-week-numbers-2015.html
-                            svyweek.x <= 39, 1,
-                          ifelse(svy == 2 &
-                                   svyweek.y >= 14 &
-                                   svyweek.y <= 39, 1, 0)),
-  monsoon.f = factor(monsoonf, levels = c(0,1), labels = c("dry","monsoon"))
-  )
-
 ```
 
 
@@ -101,8 +91,8 @@ table1(~ `Wealth tertiles` + wealthscore #effect modifiers
 
 
 tabb <- df_analysis_svy12 %>%
-  mutate(`Monsoon season` = factor(case_when(monsoon.f == "dry" ~ "Dry",
-                                             monsoon.f == "monsoon" ~ "Monsoon")),
+  mutate(`Monsoon season` = factor(case_when(monsoon == 0 ~ "Dry",
+                                             monsoon == 1 ~ "Monsoon")),
          #Diarrhea = factor(case_when(diar7d == 0 ~ "No diarrhea",
                                      #diar7d == 1 ~ "Diarrhea"), levels = c("No diarrhea", "Diarrhea")),
          tx_table1 = factor(tr_comb, labels = c("Control","Combined WSH + WSHN"))
