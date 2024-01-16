@@ -256,10 +256,10 @@ plot_prev_composite
 ```{r}
 
 ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                      "plot_effectmodsep_gam.pdf"), height=7,width=7)
+                      "plot_effectmodsep_gam.pdf"), height=8,width=5)
 
-ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                      "plot_effectmodsep_gam.jpg"), height=8,width=5)
+#ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
+                      #"plot_effectmodsep_gam.jpg"), height=8,width=5)
 
 ```
 
