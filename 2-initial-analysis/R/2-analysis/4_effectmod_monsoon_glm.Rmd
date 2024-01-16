@@ -378,16 +378,13 @@ plot_prev_composite <- plot_grid(plot_prev, glm_plot_pr, glm_plot_pd, ncol=1,
 plot_prev_composite
 ```
 
-```{r}
+```{r save}
 
 ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                      "plot_effectmodmonsoon_glm.pdf"), height=5,width=2)
-
-ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                      "plot_effectmodmonsoon_glm.png"), height=5,width=2)
+                      "plot_effectmodmonsoon_glm.pdf"),  height=110, width=88, units = "mm")
 
 #ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
-                     # "plot_effectmodmonsoon_2.png"), height=5,width=2)
+                     #"plot_effectmodmonsoon_glm.png"), height=5,width=2)
 
 ```
 
