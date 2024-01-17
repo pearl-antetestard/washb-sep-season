@@ -42,7 +42,7 @@ library(scales)
 library(ggpubr)
 library(patchwork)
 
-source(here::here("3-secondary-analysis/R", "0-config.R"))
+source(here::here("3-secondary-analysis/R", "0_config.R"))
 
 ```
 
@@ -50,18 +50,18 @@ source(here::here("3-secondary-analysis/R", "0-config.R"))
 
 # world population in 2014 (from worldpop)
 pop_worldpop_bgd <- readRDS(file = here::here("1-data",
-                            "1-temp",
+                            "2-final",
                             "pop-under3-grid-cell-bgd.rds")) 
 st_crs(pop_worldpop_bgd) # WGS 84
 
 # wealth index layer in 2011 (from worldpop)
 wealth_worldpop_bgd <- readRDS(file = here::here("1-data",
-                              "1-temp",
+                              "2-final",
                               "wealthindex-grid-cell-bgd.rds")) 
 st_crs(wealth_worldpop_bgd) # WGS 84
 
 # diarrhea prevalence difference between control and interv arms from GAM (WASHB trial)
-diar_prevdifference_wealth <- readRDS(file = here::here("1-data","1-temp",
+diar_prevdifference_wealth <- readRDS(file = here::here("1-data","2-final",
                            "gam-diar-prevdifference-interv-wealthrank-suppl.RDS"))
 # shapefiles (from GADM)
 BGD_shp_adm0 <- st_read(here::here("1-data", "0-gadm",
@@ -77,7 +77,7 @@ st_crs(BGD_shp_adm2) # WGS 84
 #BGD_shp_adm2 <- st_transform(bgd_shp_adm2, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") 
 
 # urban raster layer (from Francois based on the Global Human Settlement)
-ras <- readRDS(here::here("1-data", "1-temp", "Urban_BGD"))
+ras <- readRDS(here::here("1-data", "2-final", "Urban_BGD"))
 st_crs(ras) # +proj=longlat +datum=WGS84 +no_defs 
 #ras <- projectRaster(ras, crs = crs(BGD_shp_adm2))
 st_crs(ras)
@@ -210,16 +210,15 @@ joined <- st_join(BGD_shp_adm2_valid, joined.r) %>%  # spatial join to get inter
 
 ```{r and washb clusters,  message=F}
 
-df_gps_publicid <- inner_join(df_gps, df_publicid, by = "dataid")
-df_gps_publicid <- df_gps_publicid[,-c(1,5,6)]
-colnames(df_gps_publicid) <- c("qgpslong","qgpslat","entrydate","clusterid",
-                               "dataid","block")
+df_gps_publicid <- left_join(df_publicid, df_gps, by = "dataid")
+df_gps_publicid <- df_gps_publicid[,-c(1:3)]
+colnames(df_gps_publicid) <- c("clusterid","dataid","block","qgpslong","qgpslat","entrydate")
 
 df_gps_publicid$dataid <- as.character(df_gps_publicid$dataid)
 df_gps_publicid$clusterid <- as.character(df_gps_publicid$clusterid)
 df_analysis_svy12$dataid <- as.character(df_analysis_svy12$dataid)
 df_analysis_svy12$clusterid <- as.character(df_analysis_svy12$clusterid)
-df_gps_publicid_washb_sepseason <- inner_join(df_gps_publicid, df_analysis_svy12, by = c("dataid",
+df_gps_publicid_washb_sepseason <- left_join(df_analysis_svy12, df_gps_publicid, by = c("dataid",
                                                                                          "clusterid",
                                                                                          "block"))
 df_gps_publicid_clust <- df_gps_publicid_washb_sepseason %>%
@@ -300,16 +299,16 @@ bgd_density <- ggplot() +
   geom_sf(data = BGD_shp_adm2, fill = NA, color="black") +
   coord_sf() + 
   theme_void() +
-  theme(legend.position = "right",text = element_text(size=7.5)) +
+  theme(legend.position = "right",text = element_text(size=6)) +
  labs(
-    fill = "Population density of \nchildren < 3y per grid-cell")                
+    fill = "Population density \nof children < 3y \nper grid-cell")                
  
 bgd_density <- bgd_density + annotate(
-    geom = "curve", x=91, y=25.8, xend = 90.5, yend = 25, 
-    curvature = .1, arrow = arrow(length = unit(2, "mm")), col="#E34D34"
+    geom = "curve", x=91, y=25.9, xend = 90.5, yend = 25, 
+    curvature = .1, arrow = arrow(length = unit(1.5, "mm")), col="#E34D34"
   ) +
-  annotate("text", x=91.2, y=25.9, label= "WASH Benefits Study clusters (n=360)",
-           col="#E34D34", size=2.5, parse=F)
+  annotate("text", x=91.3, y=25.9, label= "WASH Benefits Study clusters \n(n=360)",
+           col="#E34D34", size=1.3, parse=F)
 
 bgd_density
 
@@ -336,7 +335,7 @@ bgd_wealth_cont <- ggplot() +
   geom_sf(data = wipov_sf, 
           aes(fill = wealth_rank), 
           color=NA,
-          show.legend=TRUE) + 
+          show.legend=TRUE, alpha=1) + 
   scale_fill_gradientn(colors=pal,
                        values=rescale(seq(0,1,by=0.2)),
                        limits=c(0,1), 
@@ -345,7 +344,7 @@ bgd_wealth_cont <- ggplot() +
   geom_sf(data=BGD_shp_adm2, fill=NA, color="black") +
   coord_sf() + 
   theme_void()+
-  theme(legend.position = "right",text = element_text(size=7.5)) +
+  theme(legend.position = "right",text = element_text(size=6)) +
   labs(
     fill = "Relative rank based \non the wealth index")
 bgd_wealth_cont
@@ -493,17 +492,17 @@ plot_diar_averted_bgd_gridcell_rural <- ggplot() +
   coord_sf() + 
   #new_scale_fill() +
   theme_void()+
-  theme(legend.position = "right",text = element_text(size=7.5)) +
+ theme(legend.position = "right",text = element_text(size=6)) +
   labs(
-    color = "Diarrhea cases prevented \nfor children < 3y per month \nper grid-cell")
+    color = "Diarrhea cases \nprevented in \nchildren <3y per \nmonth per grid-cell")
 
 plot_diar_averted_bgd_gridcell_rural <- plot_diar_averted_bgd_gridcell_rural + 
   annotate(
     geom = "curve",  x=91.3, y=21.6, xend = 91.8, yend = 22, 
     curvature = .3, arrow = arrow(length = unit(1.75, "mm")), col="darkgrey"
   ) +
-  annotate("text", x=91.3, y=21.3, label= "Masked urban areas \nand grid-cell with 1-2 \nchildren < 3y \n(excluded from estimates)",
-           col="darkgrey", size=2, parse=F)
+  annotate("text", x=91.2, y=21.3, label= "Masked urban areas \nand grid-cell with 1-2 \nchildren < 3y \n(excluded from estimates)",
+           col="darkgrey", size=1.3, parse=F)
 
 plot_diar_averted_bgd_gridcell_rural
 
@@ -594,7 +593,7 @@ plot_diar_averted_bgd_rural_dist_print <- ggplot() +
   coord_sf() + 
   #new_scale_fill() +
   theme_void()+
-  theme(legend.position = "right",text = element_text(size=7.5)) +
+  theme(legend.position = "right",text = element_text(size=6)) +
   labs(
     fill = "Diarrhea cases prevented \nper 1000 children < 3y per \nmonth in each district")
 
@@ -609,7 +608,7 @@ plot_diar_averted_bgd_rural_dist_print
 
 ## Diarrhea cases prevented per 1000 children < 3y per week at country level
 
-```{r plot per per district masked, message=F}
+```{r plot per district masked, message=F}
 
 ## subset rural layers by district
 #joined_grouped_rural_adm0 <- subset(joined, layer==0) 
@@ -670,7 +669,7 @@ barplot_diar_averted_bgd_rural_dist <- ggplot(joined_grouped_rural, aes(x=NAME_2
     ylab(
       "Diarrhea cases prevented per 1000 children < 3y per month \nin each district") +
     theme_bw() +
-    theme(text = element_text(size=7.5)) +
+    theme(text = element_text(size=6)) +
     theme(legend.position = "none") +
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
 
@@ -694,12 +693,13 @@ map_district_composite
 plot_composite <- ggarrange(bgd_density, bgd_wealth_cont, plot_diar_averted_bgd_gridcell_rural, 
           map_district_composite, #+ rremove("x.text"), 
           labels = c("A", "B", "C", "D"),
-          ncol = 2, nrow = 2, align = "hv", widths = c(2, 2))
+          ncol = 2, nrow = 2, align = "hv", widths = c(3.5, 3.5))
 plot_composite
 
 ggsave(plot_composite, file = here::here("4-supplementary", 
                                           "output",
-                                          "map-composite-bgd-gam-wealth-2.png"), height=10,width=10)
+                                          "map-composite-bgd-gam-wealth-2.pdf"), 
+                                           height=190, width=180, units="mm")
 
 
 
