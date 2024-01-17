@@ -29,7 +29,7 @@ rm(list=ls(all=TRUE))
 ```{r configuration, message=FALSE}
 
 library(here)
-source(here::here("3-secondary-analysis/R", "0-config.R"))
+source(here::here("3-secondary-analysis/R", "0_config.R"))
 
 ```
 
@@ -80,11 +80,11 @@ bgd_wealth_cont
 
 # data frame
 saveRDS(wipov_sf, file = here::here("1-data",
-                              "1-temp",
+                              "2-final",
                               "wealthindex-grid-cell-bgd.rds"))
 
 write_csv(wipov_sf, file = here::here("1-data",
-                              "1-temp",
+                              "2-final",
                               "wealthindex-grid-cell-bgd.csv"))
 ```
 
