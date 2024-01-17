@@ -29,7 +29,7 @@ rm(list=ls(all=TRUE))
 ```{r configuration, message=FALSE}
 
 library(here)
-source(here::here("3-secondary-analysis/R", "0-config.R"))
+source(here::here("3-secondary-analysis/R", "0_config.R"))
 
 ```
 
@@ -58,7 +58,6 @@ df_analysis_svy12 <- readRDS(file = here::here("1-data", "2-final",
                                                "enrol_diar_tr_wealth_indiv_svy012.rds")) %>%
                                                 filter(svy!=0)
 
-
 ```
 
 ```{r estimate 3y}
@@ -77,12 +76,11 @@ agg_tiff_sf <- agg_tiff_sf %>%
 
 ```{r washb clusters}
 
-df_gps_publicid <- inner_join(df_gps, df_publicid, by = "dataid")
-df_gps_publicid <- df_gps_publicid[,-c(1,5,6)]
-colnames(df_gps_publicid) <- c("qgpslong","qgpslat","entrydate","clusterid",
-                               "dataid","block")
+df_gps_publicid <- left_join(df_publicid, df_gps, by = "dataid")
+df_gps_publicid <- df_gps_publicid[,-c(1:3)]
+colnames(df_gps_publicid) <- c("clusterid","dataid","block","qgpslong","qgpslat","entrydate")
 
-df_gps_publicid_washb_sepseason <- inner_join(df_gps_publicid, df_analysis_svy12, by = c("dataid",
+df_gps_publicid_washb_sepseason <- left_join(df_analysis_svy12, df_gps_publicid, by = c("dataid",
                                                                                          "clusterid",
                                                                                          "block"))
 df_gps_publicid_clust <- df_gps_publicid_washb_sepseason %>%
@@ -98,31 +96,6 @@ df_gps_publicid_block <- df_gps_publicid_washb_sepseason %>%
   st_cast("POLYGON")
 
 ```
-
-
-
-```{r plot}
-
-# Colors
-#pal <- hcl.colors(6, "viridis", rev = TRUE, alpha = 0.7)
-
-# Plot Density
-#bgd <- ggplot() +
-  #geom_sf(data = agg_tiff_sf, 
-         # aes(fill = round(pop_3andunder,0)), 
-         # color=NA,
-         # show.legend=TRUE) + 
- # scale_fill_gradientn(colors = pal, trans="log2") +
- # geom_sf(data = bgd_shp_adm2, fill = NA) +
- # coord_sf() + 
-  #theme_void() +
- #labs(
-   # fill = "Estimated total number of \nchildren < 3y per grid-cell \nat a resolution of 1km")
- 
-#bgd 
-
-```
-
 
 
 ```{r pop density plot}
@@ -163,11 +136,11 @@ ggsave(bgd_density, file = here::here("3-secondary-analysis",
 
 # data frame
 saveRDS(agg_tiff_sf, file = here::here("1-data",
-                              "1-temp",
+                              "2-final",
                               "pop-under3-grid-cell-bgd.rds"))
 
 write_csv(agg_tiff_sf, file = here::here("1-data",
-                              "1-temp",
+                              "2-final",
                               "pop-under3-grid-cell-bgd.csv"))
 
 ```
