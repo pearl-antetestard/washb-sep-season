@@ -1,0 +1,622 @@
+---
+title: "Effect modification by SEP and heavy rainfall"
+author: "Pearl Ante-Testard"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: default
+    highlight: default
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile, 
+                          encoding   = encoding, 
+                          output_dir = here::here("4-supplementary/output")
+                          )})
+---
+
+```{r setup, include=FALSE}
+
+#library(geepack)
+library(lmtest)
+library(sandwich)
+library(cowplot)
+library(gridExtra)
+```
+
+```{r clean environment, echo=FALSE}
+
+rm(list=ls(all=TRUE))
+```
+
+```{r configuration, message=FALSE}
+
+library(here)
+source(here::here("2-initial-analysis/R", "0-config.R"))
+```
+
+```{r read formatted data, message=FALSE}
+
+#df_analysis <- readRDS(file = here::here("1-data", "2-final",
+                      #"enrol_diar_tr_wealth_indiv_svy012.rds"))
+
+# Surveys 1 and 2 (8440 children)
+df_washb_gps_average_daily_ppts <- readRDS(file = here::here("1-data", "2-final",
+                      "df-washb-gps-heavy-rain-ind.RDS"))
+
+```
+
+
+```{r data, message=FALSE}
+
+# rainy dates are based on the findings of Nguyen et al.
+# rainy seasons (elevated precipitation): May 27 – September 27 in 2014 and April 1 – September 26 in 2015
+
+df_washb_gps_average_daily_ppts <- df_washb_gps_average_daily_ppts %>%
+  mutate(block=factor(block),
+  diar7df=factor(diar7d),
+  Arms=factor(tr_comb, levels = c(0,1), labels = c("Control","Intervention")),
+  wealth_tertilef=factor(wealth_tertile, levels = c(1,2,3)),
+  heavy_rain_indf = factor(heavy_rain_ind, levels = c("FALSE","TRUE"), labels = c("No heavy rain","Heavy rain"))
+  )
+
+table(df_washb_gps_average_daily_ppts$svyyear, df_washb_gps_average_daily_ppts$svyweek)
+table(df_washb_gps_average_daily_ppts$monsoon)
+table(df_washb_gps_average_daily_ppts$heavy_rain_indf)
+```
+
+
+## Estimating diarrhea prevalence per wealth tertile and monsoon season in the 2 arms
+
+```{r diarrhea prevalence by arm, wealth, and monsoon season}
+
+prev_diar <- df_washb_gps_average_daily_ppts %>%                         
+  group_by(Arms, heavy_rain_indf) %>%         
+  summarise_at(vars(diar7d),                  
+               list(length = length, sum = sum, mean = mean, sd = sd)) 
+
+print(prev_diar)
+```
+
+
+## Estimating PRs (Control/Intervention) and 95% CIs using glm
+
+
+```{r geeglm}
+
+# releving the variable Arms with the intervention arm as reference
+# rationale: there were more diarrhea prevalence in the control arm
+df_washb_gps_average_daily_ppts$Arms <- relevel(df_washb_gps_average_daily_ppts$Arms, ref = "Intervention")
+
+# modeling a geeglm fit with 3-way interaction
+# using the numeric diar7d for glm
+glm_int_log <- glm(diar7df ~ Arms + wealth_tertilef + heavy_rain_indf +
+                       wealth_tertilef*Arms + heavy_rain_indf*Arms +
+                       wealth_tertilef*heavy_rain_indf*Arms,
+            family = binomial(link="log"),
+            data = df_washb_gps_average_daily_ppts)
+summary(glm_int_log)
+
+# get the var-cov matrix
+glmfitlog_robust_vcov <- vcov(glm_int_log,cluster=df_washb_gps_average_daily_ppts$block)
+
+# update regression fit
+glmfitlog_lin_robustse <- coeftest(glm_int_log, vcov. =  glmfitlog_robust_vcov)
+print(glmfitlog_lin_robustse)
+
+
+# modeling a geeglm fit without 3-way interaction
+glm_noint_log <-  glm(diar7df ~ Arms + wealth_tertilef + heavy_rain_indf +
+                       wealth_tertilef*Arms + heavy_rain_indf*Arms,
+                      family = binomial(link="log"),
+            data = df_washb_gps_average_daily_ppts)
+summary(glm_noint_log)
+print(coeftest(glm_noint_log, vcov. =  glmfitlog_robust_vcov))
+
+# wald test to compare the models with and without 3-way interaction
+wald_pr <- waldtest(glm_int_log, glm_noint_log, vcov = glmfitlog_robust_vcov) 
+print(wald_pr)
+```
+
+
+```{r PR estimation using log binomial}
+
+##################
+## rainy season ##
+##################
+
+lincom_t1_wet <- c(0,1,0,0,0,0,0,1,0,0,0,0)
+logPR_t1_wet <- t(lincom_t1_wet) %*% glmfitlog_lin_robustse[,1]
+logPR_se_t1_wet = sqrt( t(lincom_t1_wet) %*% glmfitlog_robust_vcov %*% lincom_t1_wet)
+PR_t1_wet <- exp(logPR_t1_wet)
+PR_t1_wet_lower <- exp(logPR_t1_wet-1.96*logPR_se_t1_wet)
+PR_t1_wet_upper <- exp(logPR_t1_wet+1.96*logPR_se_t1_wet)
+dat_t1_wet <- data.frame(PR_t1_wet, PR_t1_wet_lower, PR_t1_wet_upper)
+dat_t1_wet$monsoon <- "heavy rain"
+dat_t1_wet$tertile <- "T1 \n(poorest)"
+colnames(dat_t1_wet) <- c("PR", "lower", "upper", "rainfall", "Tertile")
+
+lincom_t2_wet <- c(0,1,0,0,0,1,0,1,0,0,1,0)
+logPR_t2_wet <- t(lincom_t2_wet) %*% glmfitlog_lin_robustse[,1]
+logPR_se_t2_wet = sqrt( t(lincom_t2_wet) %*% glmfitlog_robust_vcov %*% lincom_t2_wet)
+PR_t2_wet <- exp(logPR_t2_wet)
+PR_t2_wet_lower <- exp(logPR_t2_wet-1.96*logPR_se_t2_wet)
+PR_t2_wet_upper <- exp(logPR_t2_wet+1.96*logPR_se_t2_wet)
+dat_t2_wet <- data.frame(PR_t2_wet, PR_t2_wet_lower, PR_t2_wet_upper)
+dat_t2_wet$monsoon <- "heavy rain"
+dat_t2_wet$tertile <- "T2"
+colnames(dat_t2_wet) <- c("PR", "lower", "upper", "rainfall", "Tertile")
+
+lincom_t3_wet <- c(0,1,0,0,0,0,1,1,0,0,0,1)
+logPR_t3_wet <- t(lincom_t3_wet) %*% glmfitlog_lin_robustse[,1]
+logPR_se_t3_wet = sqrt( t(lincom_t3_wet) %*% glmfitlog_robust_vcov %*% lincom_t3_wet)
+PR_t3_wet <- exp(logPR_t3_wet)
+PR_t3_wet_lower <- exp(logPR_t3_wet-1.96*logPR_se_t3_wet)
+PR_t3_wet_upper <- exp(logPR_t3_wet+1.96*logPR_se_t3_wet)
+dat_t3_wet <- data.frame(PR_t3_wet, PR_t3_wet_lower, PR_t3_wet_upper)
+dat_t3_wet$monsoon <- "heavy rain"
+dat_t3_wet$tertile <- "T3 \n(wealthiest)"
+colnames(dat_t3_wet) <- c("PR", "lower", "upper", "rainfall", "Tertile")
+
+
+# merging dataframes
+dat <- rbind(dat_t1_wet, dat_t2_wet, dat_t3_wet)
+
+print(dat)
+
+
+##################
+### dry season ###
+##################
+
+logPR_t1_dry = glmfitlog_lin_robustse[2,1]
+logPR_t1_dry_se = glmfitlog_lin_robustse[2,2]
+PR_t1_dry = exp(logPR_t1_dry)
+PR_t1_dry_lower <- exp(logPR_t1_dry-1.96*logPR_t1_dry_se)
+PR_t1_dry_upper <- exp(logPR_t1_dry+1.96*logPR_t1_dry_se)
+dat_t1_dry <- data.frame(PR_t1_dry, PR_t1_dry_lower, PR_t1_dry_upper)
+dat_t1_dry$monsoon <- "no heavy rain"
+dat_t1_dry$tertile <- "T1 \n(poorest)"
+colnames(dat_t1_dry) <- c("PR", "lower", "upper", "rainfall", "Tertile")
+
+lincom_t2_dry <- c(0,1,0,0,0,1,0,0,0,0,0,0)
+logPR_t2_dry <- t(lincom_t2_dry) %*% glmfitlog_lin_robustse[,1]
+logPR_se_t2_dry = sqrt( t(lincom_t2_dry) %*% glmfitlog_robust_vcov %*% lincom_t2_dry)
+PR_t2_dry <- exp(logPR_t2_dry)
+PR_t2_dry_lower <- exp(logPR_t2_dry-1.96*logPR_se_t2_dry)
+PR_t2_dry_upper <- exp(logPR_t2_dry+1.96*logPR_se_t2_dry)
+dat_t2_dry <- data.frame(PR_t2_dry, PR_t2_dry_lower, PR_t2_dry_upper)
+dat_t2_dry$monsoon <- "no heavy rain"
+dat_t2_dry$tertile <- "T2"
+colnames(dat_t2_dry) <- c("PR", "lower", "upper", "rainfall", "Tertile")
+
+lincom_t3_dry <- c(0,1,0,0,0,0,1,0,0,0,0,0)
+logPR_t3_dry <- t(lincom_t3_dry) %*% glmfitlog_lin_robustse[,1]
+logPR_se_t3_dry = sqrt( t(lincom_t3_dry) %*% glmfitlog_robust_vcov %*% lincom_t3_dry)
+PR_t3_dry <- exp(logPR_t3_dry)
+PR_t3_dry_lower <- exp(logPR_t3_dry-1.96*logPR_se_t3_dry)
+PR_t3_dry_upper <- exp(logPR_t3_dry+1.96*logPR_se_t3_dry)
+dat_t3_dry <- data.frame(PR_t3_dry, PR_t3_dry_lower, PR_t3_dry_upper)
+dat_t3_dry$monsoon <- "no heavy rain"
+dat_t3_dry$tertile <- "T3 \n(wealthiest)"
+colnames(dat_t3_dry) <- c("PR", "lower", "upper", "rainfall", "Tertile")
+
+
+# merging dataframes
+dat_monsoon_pr <- rbind(dat_t1_dry, dat_t2_dry, dat_t3_dry,
+                 dat_t1_wet, dat_t2_wet, dat_t3_wet)
+
+print(dat_monsoon_pr)
+
+
+
+# counter-checking by hand
+#prev_diar
+
+#pr_t1_dry = 0.0573/0.0447; pr_t1_dry
+#pr_t2_dry = 0.0311/0.0370; pr_t2_dry
+#pr_t3_dry = 0.0300/0.0327; pr_t3_dry
+
+```
+
+## Estimating PDs (Control - Intervention) and 95% CIs using linear-binomial
+
+```{r glm}
+
+# modeling a glm fit with 3-way interaction
+# using the factor diar7df for glm
+glm_int_iden <- glm(diar7df ~ Arms + wealth_tertilef + heavy_rain_indf +
+                       wealth_tertilef*Arms + heavy_rain_indf*Arms +
+                       wealth_tertilef*heavy_rain_indf*Arms,
+            family = binomial(link="identity"),
+            data = df_washb_gps_average_daily_ppts
+            )
+#summary(glm_int_iden)
+
+# get robust var-covar matrix, allowing for block-level clustering 
+glmfit_robust_iden_vcov <- vcovCL(glm_int_iden,cluster=df_washb_gps_average_daily_ppts$block)
+
+# update regression fit
+glmfit_lin_robustse <- coeftest(glm_int_iden,vcov. =  glmfit_robust_iden_vcov)
+print(glmfit_lin_robustse)
+
+# modeling a glm fit without an interaction
+glm_no3int_iden <- glm(diar7df ~ Arms + wealth_tertilef + heavy_rain_indf +
+                       wealth_tertilef*Arms + heavy_rain_indf*Arms,
+            family = binomial(link="identity"),
+            data = df_washb_gps_average_daily_ppts
+            )
+#summary(glm_no3int_iden)
+print(coeftest(glm_no3int_iden, vcov. =  glmfit_robust_iden_vcov))
+
+# wald test to compare the models with and without interaction
+wald_pd <- waldtest(glm_int_iden, glm_no3int_iden, vcov = glmfit_robust_iden_vcov) 
+print(wald_pd)
+
+```
+
+
+```{r PD estimation using linear-binomial}
+
+####################
+### rainy season ###
+####################
+
+lincom_pd_t1_wet <- c(0,1,0,0,0,0,0,1,0,0,0,0)
+logPD_t1_wet <- t(lincom_pd_t1_wet) %*% glmfit_lin_robustse[,1]
+logPD_se_t1_wet = sqrt( t(lincom_pd_t1_wet) %*% glmfit_robust_iden_vcov %*% lincom_pd_t1_wet)
+PD_t1_wet_lower <- logPD_t1_wet-1.96*logPD_se_t1_wet
+PD_t1_wet_upper <- logPD_t1_wet+1.96*logPD_se_t1_wet
+dat_pd_t1_wet <- data.frame(logPD_t1_wet, PD_t1_wet_lower, PD_t1_wet_upper)
+dat_pd_t1_wet$monsoon <- "heavy rain"
+dat_pd_t1_wet$tertile <- "T1 \n(poorest)"
+colnames(dat_pd_t1_wet) <- c("PD", "lower", "upper", "rainfall", "Tertile")
+
+lincom_pd_t2_wet <- c(0,1,0,0,0,1,0,1,0,0,1,0)
+logPD_t2_wet <- t(lincom_pd_t2_wet) %*% glmfit_lin_robustse[,1]
+logPD_se_t2_wet = sqrt( t(lincom_pd_t2_wet) %*% glmfit_robust_iden_vcov %*% lincom_pd_t2_wet)
+PD_t2_wet_lower <- logPD_t2_wet-1.96*logPD_se_t2_wet
+PD_t2_wet_upper <- logPD_t2_wet+1.96*logPD_se_t2_wet
+dat_pd_t2_wet <- data.frame(logPD_t2_wet, PD_t2_wet_lower, PD_t2_wet_upper)
+dat_pd_t2_wet$monsoon <- "heavy rain"
+dat_pd_t2_wet$tertile <- "T2"
+colnames(dat_pd_t2_wet) <- c("PD", "lower", "upper", "rainfall", "Tertile")
+
+lincom_pd_t3_wet <- c(0,1,0,0,0,0,1,1,0,0,0,1)
+logPD_t3_wet <- t(lincom_pd_t3_wet) %*% glmfit_lin_robustse[,1]
+logPD_se_t3_wet = sqrt( t(lincom_pd_t3_wet) %*% glmfit_robust_iden_vcov %*% lincom_pd_t3_wet)
+PD_t3_wet_lower <- logPD_t3_wet-1.96*logPD_se_t3_wet
+PD_t3_wet_upper <- logPD_t3_wet+1.96*logPD_se_t3_wet
+dat_pd_t3_wet <- data.frame(logPD_t3_wet, PD_t3_wet_lower, PD_t3_wet_upper)
+dat_pd_t3_wet$monsoon <- "heavy rain"
+dat_pd_t3_wet$tertile <- "T3 \n(wealthiest)"
+colnames(dat_pd_t3_wet) <- c("PD", "lower", "upper", "rainfall", "Tertile")
+
+# counter-checking by hand
+#prev_diar
+
+#pd_t1_wet = 0.1027-0.0460; pd_t1_wet
+#pd_t2_wet = 0.0663-0.0432; pd_t2_wet
+#pd_t3_wet = 0.0779-0.0375; pd_t3_wet
+
+##################
+### dry season ###
+##################
+
+logPD_t1_dry = glmfit_lin_robustse[2,1]
+logPD_t1_dry_se = glmfit_lin_robustse[2,2]
+PD_t1_dry_lower <- logPD_t1_dry-1.96*logPD_t1_dry_se
+PD_t1_dry_upper <- logPD_t1_dry+1.96*logPD_t1_dry_se
+dat_pd_t1_dry <- data.frame(logPD_t1_dry, PD_t1_dry_lower, PD_t1_dry_upper)
+dat_pd_t1_dry$monsoon <- "no heavy rain"
+dat_pd_t1_dry$tertile <- "T1 \n(poorest)"
+colnames(dat_pd_t1_dry) <- c("PD", "lower", "upper", "rainfall", "Tertile")
+
+lincom_pd_t2_dry <- c(0,1,0,0,0,1,0,0,0,0,0,0)
+logPD_t2_dry <- t(lincom_pd_t2_dry) %*% glmfit_lin_robustse[,1]
+logPD_se_t2_dry = sqrt( t(lincom_pd_t2_dry) %*% glmfit_robust_iden_vcov %*% lincom_pd_t2_dry)
+PD_t2_dry_lower <- logPD_t2_dry-1.96*logPD_se_t2_dry
+PD_t2_dry_upper <- logPD_t2_dry+1.96*logPD_se_t2_dry
+dat_pd_t2_dry <- data.frame(logPD_t2_dry, PD_t2_dry_lower, PD_t2_dry_upper)
+dat_pd_t2_dry$monsoon <- "no heavy rain"
+dat_pd_t2_dry$tertile <- "T2"
+colnames(dat_pd_t2_dry) <- c("PD", "lower", "upper", "rainfall", "Tertile")
+
+lincom_pd_t3_dry <- c(0,1,0,0,0,0,1,0,0,0,0,0)
+logPD_t3_dry <- t(lincom_pd_t3_dry) %*% glmfit_lin_robustse[,1]
+logPD_se_t3_dry = sqrt( t(lincom_pd_t3_dry) %*% glmfit_robust_iden_vcov %*% lincom_pd_t3_dry)
+PD_t3_dry_lower <- logPD_t3_dry-1.96*logPD_se_t3_dry
+PD_t3_dry_upper <- logPD_t3_dry+1.96*logPD_se_t3_dry
+dat_pd_t3_dry <- data.frame(logPD_t3_dry, PD_t3_dry_lower, PD_t3_dry_upper)
+dat_pd_t3_dry$monsoon <- "no heavy rain"
+dat_pd_t3_dry$tertile <- "T3 \n(wealthiest)"
+colnames(dat_pd_t3_dry) <- c("PD", "lower", "upper", "rainfall", "Tertile")
+
+# merging dataframes
+dat_pd <- rbind(dat_pd_t1_dry, dat_pd_t2_dry, dat_pd_t3_dry,
+                dat_pd_t1_wet, dat_pd_t2_wet, dat_pd_t3_wet)
+
+print(dat_pd)
+
+# counter-checking by hand
+#prev_diar
+
+#pd_t1_dry = 0.0573-0.0447; pd_t1_dry
+#pd_t2_dry = 0.0311-0.0370; pd_t2_dry
+#pd_t3_dry = 0.0300-0.0327; pd_t3_dry
+```
+
+
+```{r}
+
+####################################
+#### Prevalence in rainy season ####
+####################################
+
+# Tertile 1
+
+# control
+lincom_prev_t1_rainy_control <- c(1,1,0,0,1,0,0,1,0,0,0,0)
+log_prev_t1_rainy_control = t(lincom_prev_t1_rainy_control) %*% glmfit_lin_robustse[,1]
+logprev_t1_rainy_control_se = sqrt( t(lincom_prev_t1_rainy_control) %*% glmfit_robust_iden_vcov %*% lincom_prev_t1_rainy_control)
+prev_t1_rainy_control_lower <- log_prev_t1_rainy_control-1.96*logprev_t1_rainy_control_se
+prev_t1_rainy_control_upper <- log_prev_t1_rainy_control+1.96*logprev_t1_rainy_control_se
+prev_t1_rainy_control <- data.frame(log_prev_t1_rainy_control, prev_t1_rainy_control_lower, prev_t1_rainy_control_upper)
+prev_t1_rainy_control$monsoon <- "heavy rain"
+prev_t1_rainy_control$Arms <- "control"
+prev_t1_rainy_control$tertile <- "T1 \n(poorest)"
+colnames(prev_t1_rainy_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+#intervention
+lincom_prev_t1_rainy_interv <- c(1,0,0,0,1,0,0,0,0,0,0,0)
+log_prev_t1_rainy_interv = t(lincom_prev_t1_rainy_interv) %*% glmfit_lin_robustse[,1]
+logprev_t1_rainy_interv_se = sqrt( t(lincom_prev_t1_rainy_interv) %*% glmfit_robust_iden_vcov %*% lincom_prev_t1_rainy_interv)
+prev_t1_rainy_interv_lower <- log_prev_t1_rainy_interv-1.96*logprev_t1_rainy_interv_se
+prev_t1_rainy_interv_upper <- log_prev_t1_rainy_interv+1.96*logprev_t1_rainy_interv_se
+prev_t1_rainy_interv <- data.frame(log_prev_t1_rainy_interv, prev_t1_rainy_interv_lower, prev_t1_rainy_interv_upper)
+prev_t1_rainy_interv$monsoon <- "heavy rain"
+prev_t1_rainy_interv$Arms <- "intervention"
+prev_t1_rainy_interv$tertile <- "T1 \n(poorest)"
+colnames(prev_t1_rainy_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+
+# Tertile 2
+
+# control
+lincom_prev_t2_rainy_control <- c(1,1,1,0,1,1,0,1,1,0,1,0)
+log_prev_t2_rainy_control = t(lincom_prev_t2_rainy_control) %*% glmfit_lin_robustse[,1]
+logprev_t2_rainy_control_se = sqrt( t(lincom_prev_t2_rainy_control) %*% glmfit_robust_iden_vcov %*% lincom_prev_t2_rainy_control)
+prev_t2_rainy_control_lower <- log_prev_t2_rainy_control-1.96*logprev_t2_rainy_control_se
+prev_t2_rainy_control_upper <- log_prev_t2_rainy_control+1.96*logprev_t2_rainy_control_se
+prev_t2_rainy_control <- data.frame(log_prev_t2_rainy_control, prev_t2_rainy_control_lower, prev_t2_rainy_control_upper)
+prev_t2_rainy_control$monsoon <- "heavy rain"
+prev_t2_rainy_control$Arms <- "control"
+prev_t2_rainy_control$tertile <- "T2"
+colnames(prev_t2_rainy_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+# intervention
+lincom_prev_t2_rainy_interv <- c(1,0,1,0,1,0,0,0,1,0,0,0)
+log_prev_t2_rainy_interv = t(lincom_prev_t2_rainy_interv) %*% glmfit_lin_robustse[,1]
+logprev_t2_rainy_interv_se = sqrt( t(lincom_prev_t2_rainy_interv) %*% glmfit_robust_iden_vcov %*% lincom_prev_t2_rainy_interv)
+prev_t2_rainy_interv_lower <- log_prev_t2_rainy_interv-1.96*logprev_t2_rainy_interv_se
+prev_t2_rainy_interv_upper <- log_prev_t2_rainy_interv+1.96*logprev_t2_rainy_interv_se
+prev_t2_rainy_interv <- data.frame(log_prev_t2_rainy_interv, prev_t2_rainy_interv_lower, prev_t2_rainy_interv_upper)
+prev_t2_rainy_interv$monsoon <- "heavy rain"
+prev_t2_rainy_interv$Arms <- "intervention"
+prev_t2_rainy_interv$tertile <- "T2"
+colnames(prev_t2_rainy_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+
+# Tertile 3
+
+# control
+lincom_prev_t3_rainy_control <- c(1,1,0,1,1,0,1,1,0,1,0,1)
+log_prev_t3_rainy_control = t(lincom_prev_t3_rainy_control) %*% glmfit_lin_robustse[,1]
+logprev_t3_rainy_control_se = sqrt( t(lincom_prev_t3_rainy_control) %*% glmfit_robust_iden_vcov %*% lincom_prev_t3_rainy_control)
+prev_t3_rainy_control_lower <- log_prev_t3_rainy_control-1.96*logprev_t3_rainy_control_se
+prev_t3_rainy_control_upper <- log_prev_t3_rainy_control+1.96*logprev_t3_rainy_control_se
+prev_t3_rainy_control <- data.frame(log_prev_t3_rainy_control, prev_t3_rainy_control_lower, prev_t3_rainy_control_upper)
+prev_t3_rainy_control$monsoon <- "heavy rain"
+prev_t3_rainy_control$Arms <- "control"
+prev_t3_rainy_control$tertile <- "T3 \n (wealthiest)"
+colnames(prev_t3_rainy_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+# intervention
+lincom_prev_t3_rainy_interv <- c(1,0,0,1,1,0,0,0,0,1,0,0)
+log_prev_t3_rainy_interv = t(lincom_prev_t3_rainy_interv) %*% glmfit_lin_robustse[,1]
+logprev_t3_rainy_interv_se = sqrt( t(lincom_prev_t3_rainy_interv) %*% glmfit_robust_iden_vcov %*% lincom_prev_t3_rainy_interv)
+prev_t3_rainy_interv_lower <- log_prev_t3_rainy_interv-1.96*logprev_t3_rainy_interv_se
+prev_t3_rainy_interv_upper <- log_prev_t3_rainy_interv+1.96*logprev_t3_rainy_interv_se
+prev_t3_rainy_interv <- data.frame(log_prev_t3_rainy_interv, prev_t3_rainy_interv_lower, prev_t3_rainy_interv_upper)
+prev_t3_rainy_interv$monsoon <- "heavy rain"
+prev_t3_rainy_interv$Arms <- "intervention"
+prev_t3_rainy_interv$tertile <- "T3 \n (wealthiest)"
+colnames(prev_t3_rainy_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+
+
+####################################
+##### Prevalence in dry season #####
+####################################
+
+# Tertile 1
+
+# control
+lincom_prev_t1_dry_control <- c(1,1,0,0,0,0,0,0,0,0,0,0)
+log_prev_t1_dry_control = t(lincom_prev_t1_dry_control) %*% glmfit_lin_robustse[,1]
+logprev_t1_dry_control_se = sqrt( t(lincom_prev_t1_dry_control) %*% glmfit_robust_iden_vcov %*% lincom_prev_t1_dry_control)
+prev_t1_dry_control_lower <- log_prev_t1_dry_control-1.96*logprev_t1_dry_control_se
+prev_t1_dry_control_upper <- log_prev_t1_dry_control+1.96*logprev_t1_dry_control_se
+prev_t1_dry_control <- data.frame(log_prev_t1_dry_control, prev_t1_dry_control_lower, 
+                                  prev_t1_dry_control_upper)
+prev_t1_dry_control$monsoon <- "no heavy rain"
+prev_t1_dry_control$Arms <- "control"
+prev_t1_dry_control$tertile <- "T1 \n(poorest)"
+colnames(prev_t1_dry_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+# intervention
+lincom_prev_t1_dry_interv <- c(1,0,0,0,0,0,0,0,0,0,0,0)
+log_prev_t1_dry_interv = t(lincom_prev_t1_dry_interv) %*% glmfit_lin_robustse[,1]
+logprev_t1_dry_interv_se = sqrt( t(lincom_prev_t1_dry_interv) %*% glmfit_robust_iden_vcov %*% lincom_prev_t1_dry_interv)
+prev_t1_dry_interv_lower <- log_prev_t1_dry_interv-1.96*logprev_t1_dry_interv_se
+prev_t1_dry_interv_upper <- log_prev_t1_dry_interv+1.96*logprev_t1_dry_interv_se
+prev_t1_dry_interv <- data.frame(log_prev_t1_dry_interv, prev_t1_dry_interv_lower, 
+                                  prev_t1_dry_interv_upper)
+prev_t1_dry_interv$monsoon <- "no heavy rain"
+prev_t1_dry_interv$Arms <- "intervention"
+prev_t1_dry_interv$tertile <- "T1 \n(poorest)"
+colnames(prev_t1_dry_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+
+# Tertile 2
+
+# control
+lincom_prev_t2_dry_control <- c(1,1,1,0,0,1,0,0,0,0,0,0)
+log_prev_t2_dry_control = t(lincom_prev_t2_dry_control) %*% glmfit_lin_robustse[,1]
+logprev_t2_dry_control_se = sqrt( t(lincom_prev_t2_dry_control) %*% glmfit_robust_iden_vcov %*% lincom_prev_t2_dry_control)
+prev_t2_dry_control_lower <- log_prev_t2_dry_control-1.96*logprev_t2_dry_control_se
+prev_t2_dry_control_upper <- log_prev_t2_dry_control+1.96*logprev_t2_dry_control_se
+prev_t2_dry_control <- data.frame(log_prev_t2_dry_control, prev_t2_dry_control_lower, 
+                                  prev_t2_dry_control_upper)
+prev_t2_dry_control$monsoon <- "no heavy rain"
+prev_t2_dry_control$Arms <- "control"
+prev_t2_dry_control$tertile <- "T2"
+colnames(prev_t2_dry_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+# intervention
+lincom_prev_t2_dry_interv <- c(1,0,1,0,0,0,0,0,0,0,0,0)
+log_prev_t2_dry_interv = t(lincom_prev_t2_dry_interv) %*% glmfit_lin_robustse[,1]
+logprev_t2_dry_interv_se = sqrt( t(lincom_prev_t2_dry_interv) %*% glmfit_robust_iden_vcov %*% lincom_prev_t2_dry_interv)
+prev_t2_dry_interv_lower <- log_prev_t2_dry_interv-1.96*logprev_t2_dry_interv_se
+prev_t2_dry_interv_upper <- log_prev_t2_dry_interv+1.96*logprev_t2_dry_interv_se
+prev_t2_dry_interv <- data.frame(log_prev_t2_dry_interv, prev_t2_dry_interv_lower, 
+                                  prev_t2_dry_interv_upper)
+prev_t2_dry_interv$monsoon <- "no heavy rain"
+prev_t2_dry_interv$Arms <- "intervention"
+prev_t2_dry_interv$tertile <- "T2"
+colnames(prev_t2_dry_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+
+# Tertile 3
+
+# control
+lincom_prev_t3_dry_control <- c(1,1,0,1,0,0,1,0,0,0,0,0)
+log_prev_t3_dry_control = t(lincom_prev_t3_dry_control) %*% glmfit_lin_robustse[,1]
+logprev_t3_dry_control_se = sqrt( t(lincom_prev_t3_dry_control) %*% glmfit_robust_iden_vcov %*% lincom_prev_t3_dry_control)
+prev_t3_dry_control_lower <- log_prev_t3_dry_control-1.96*logprev_t3_dry_control_se
+prev_t3_dry_control_upper <- log_prev_t3_dry_control+1.96*logprev_t3_dry_control_se
+prev_t3_dry_control <- data.frame(log_prev_t3_dry_control, prev_t3_dry_control_lower, 
+                                  prev_t3_dry_control_upper)
+prev_t3_dry_control$monsoon <- "no heavy rain"
+prev_t3_dry_control$Arms <- "control"
+prev_t3_dry_control$tertile <- "T3 \n (wealthiest)"
+colnames(prev_t3_dry_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+# intervention
+lincom_prev_t3_dry_interv <- c(1,0,0,1,0,0,0,0,0,0,0,0)
+log_prev_t3_dry_interv = t(lincom_prev_t3_dry_interv) %*% glmfit_lin_robustse[,1]
+logprev_t3_dry_interv_se = sqrt( t(lincom_prev_t3_dry_interv) %*% glmfit_robust_iden_vcov %*% lincom_prev_t3_dry_interv)
+prev_t3_dry_interv_lower <- log_prev_t3_dry_interv-1.96*logprev_t3_dry_interv_se
+prev_t3_dry_interv_upper <- log_prev_t3_dry_interv+1.96*logprev_t3_dry_interv_se
+prev_t3_dry_interv <- data.frame(log_prev_t3_dry_interv, prev_t3_dry_interv_lower, 
+                                  prev_t3_dry_interv_upper)
+prev_t3_dry_interv$monsoon <- "no heavy rain"
+prev_t3_dry_interv$Arms <- "intervention"
+prev_t3_dry_interv$tertile <- "T3 \n (wealthiest)"
+colnames(prev_t3_dry_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
+
+
+# merging dataframes
+dat_prev <- rbind(prev_t1_rainy_control, prev_t1_rainy_interv, 
+                  prev_t2_rainy_control, prev_t2_rainy_interv, 
+                  prev_t3_rainy_control, prev_t3_rainy_interv,
+                  prev_t1_dry_control, prev_t1_dry_interv,
+                  prev_t2_dry_control, prev_t2_dry_interv,
+                  prev_t3_dry_control, prev_t3_dry_interv)
+
+print(dat_prev)
+```
+
+
+
+
+## Plotting Prevalence Ratio (control/intervention) and Prevalence Difference (control-intervention)
+
+```{r plots}
+# plotting diarrhea prevalence by arm and per monsoon season
+plot_prev <- ggplot(data = dat_prev, 
+                    aes(x = rainfall, y = prevalence, color = Arms
+                                 )) + 
+             geom_errorbar(aes(ymin=lower, ymax=upper), 
+                    width = 0.1, linewidth = 0.6, position = position_dodge(width = 0.4)) +
+             geom_point(size = 1.5, position = position_dodge(width = 0.4)) +
+             facet_wrap(~Tertile) +
+             scale_color_manual(values = c('#E69F00', 'turquoise')) + 
+               #theme(legend.position = "top") +
+             scale_y_continuous(breaks=seq(0,0.14,by=0.02), limits=c(0,0.14),
+                    labels =   sprintf("%1.0f",seq(0,0.14,by=0.02)*100)) +
+             labs(x = "Rainfall", y = "Diarrhea Prevalence (%)", tag = "A \n") + 
+             theme_minimal() +
+             theme(legend.position = c(0.2,0.9),
+                   legend.title = element_blank(),
+                   legend.key.size = unit(0.05, 'cm'),
+                   text = element_text(size=7.5),
+                   plot.tag = element_text(face = "bold")) 
+
+
+# plotting PR control/intervention
+gee_plot_pr <- ggplot(dat_monsoon_pr, aes(rainfall, PR)) + 
+               geom_errorbar(aes(ymin=lower, ymax=upper#, color = monsoon
+                                 ), 
+                       width = 0.06, linewidth = 0.6, position = position_dodge(width = 0.4)) +
+               geom_hline(yintercept = 1, linetype="dotted") +
+               geom_point(size = 1.5, position = position_dodge(width = 0.4)) +
+               scale_y_continuous(breaks=c(0.5,1,1.5,2,3,5), trans = "log") +
+               facet_wrap(~Tertile) +
+               labs(x = "Rainfall", y = "Prevalence Ratio (PR)", tag = "B \n") +
+               theme_minimal() +
+               theme(legend.position = "none",
+                     text = element_text(size=7.5),
+                     plot.tag = element_text(face = "bold")) 
+
+# plotting PD control-intervention
+glm_plot_pd <- ggplot(dat_pd, aes(rainfall, PD)) +
+               geom_errorbar(aes(ymin=lower, ymax=upper#, color = monsoon
+                                 ), 
+                      width = 0.06, linewidth = 0.6, position = position_dodge(width = 0.4)) +
+               geom_hline(yintercept = 0, linetype="dotted") +
+               geom_point(size = 1.5, position = position_dodge(width = 0.4)) +
+               scale_y_continuous(breaks=seq(-0.010,0.10,by=0.02), 
+                    labels =   sprintf("%1.0f",seq(-0.010,0.10,by=0.02)*100)) +
+               facet_wrap(~Tertile) +
+               labs(x = "Rainfall", y = "Prevalence Difference (PD,%)", tag = "C \n") +
+               theme_minimal() +
+               theme(legend.position = "none",
+                     text = element_text(size=7.5),
+                     plot.tag = element_text(face = "bold")) 
+
+
+#plot_composite <- plot_grid(gee_plot_pr, glm_plot_pd, nrow=1, ncol=2)
+
+plot_prev_composite <- grid.arrange(plot_prev, gee_plot_pr, glm_plot_pd, ncol=1, 
+                               nrow=3#, bottom = quote("Monsoon season")
+                               )
+
+#plot_prev_composite <- grid.arrange(plot_prev, glm_plot_pd, ncol=1, 
+                               #nrow=3#, bottom = quote("Monsoon season")
+                               #nrow=2
+                               #)
+plot_prev_composite
+```
+
+```{r}
+
+ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
+                      "plot_effectmodsepmonsoon_glm.pdf"), height=6,width=4)
+
+#ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
+                     # "plot_effectmodsepmonsoon_v2_poster.jpg"), height=8,width=5)
+
+#ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
+                      #"plot_effectmodseprainfall_glm.png"), height=6,width=4)
+
+```
+
+```{r session info}
+
+sessionInfo()
+```
+
