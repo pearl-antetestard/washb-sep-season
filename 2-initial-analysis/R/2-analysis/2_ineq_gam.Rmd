@@ -127,7 +127,6 @@ summary(mod_gam_2)
 # get the smooth difference
 # codes for get_smooths_difference: https://github.com/stefanocoretta/tidymv/blob/main/R/plotting.R 
 # that uses the get_difference function (https://github.com/stefanocoretta/tidymv/blob/main/R/imported-fun.R)
-# computes simultaneous CIs which follows Gavin Simpson's: https://fromthebottomoftheheap.net/2016/12/15/simultaneous-interval-revisited/
 
 # smooth difference
 gam_diff <- get_smooths_difference(mod_gam_1, wealth_rank, difference = list(Arms = c("Control",
