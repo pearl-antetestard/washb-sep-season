@@ -605,7 +605,7 @@ plot_prev_composite
 ```{r}
 
 ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
-                      "plot_effectmodsepmonsoon_glm.pdf"), height=6,width=4)
+                      "plot_effectmodsepmonsoon_glm.pdf"), height=210, width=180, units = "mm")
 
 #ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
                      # "plot_effectmodsepmonsoon_v2_poster.jpg"), height=8,width=5)
