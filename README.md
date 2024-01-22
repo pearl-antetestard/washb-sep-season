@@ -8,7 +8,7 @@ This repository includes R codes to support the paper:
 
 _"WASH interventions and child diarrhea at the interface of climate and socioeconomic position in Bangladesh"_
 
-P.A. Ante-Testard, F. Rerolle, A. Nguyen, S. Ashraf, S.M. Parvez, A.B. Naser, T. Benmarhnia, M. Rahman, S.P. Luby, J. Benjamin-Chung, B.F. Arnold
+P.A. Ante-Testard, F. Rerolle, A.T. Nguyen, S. Ashraf, S.M. Parvez, A.B. Naser, T. Benmarhnia, M. Rahman, S.P. Luby, J. Benjamin-Chung, B.F. Arnold
 
 If there are any inquiries regarding the files in this repository, please feel free to contact Pearl Ante-Testard at UCSF (pearl.ante@ucsf.edu).
 
@@ -43,6 +43,7 @@ The installation time should be < 10 minutes total on a typical desktop computer
 ### Instructions for Use
 
 To run the analyses:
+
 1. Clone this GitHub repository.
 
 2. Create subdirectories named: `1-data/0-untouched`,`1-data/0-gadm`,`1-data/0-terraclim`, `1-data/0-terraclim/ppt`, `1-data/0-terraclim/tmax`, `1-data/0-terraclim/soil`, `1-data/0-worldpop` and `1-data/2-final`.
