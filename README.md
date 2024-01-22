@@ -52,14 +52,14 @@ To run the analyses:
 > `1-data/0-terraclim/tmax`
 > `1-data/0-terraclim/soil`
 - `1-data/0-worldpop`
-- `1-data/1-temp`
-- `1-data/1-final`
+- `1-data/2-final`
 3. If you want to reproduce the formatted dataset that contains the created wealth and season variables, you can download the public raw datasets (`washb-bangladesh-enrol-public.csv`, `washb-bangladesh-tr-public.csv` and `washb-bangladesh-diar-public.csv`) from the WASH Benefits Bangladesh trial from https://osf.io/wvyn4/. Then, save them in the subdirectory `1-data/0-untouched`. 
-4. Otherwise, you can download the formatted datasets directly from https://osf.io/xwndg/ to skip data management `1-dm` and proceed with the analyses. Save the formatted datasets in `1-data/1-final`.
-4. The Bangladesh geospatial layers can be downloaded from:
+4. Otherwise, you can download the formatted datasets directly from https://osf.io/xwndg/ to skip data management `1-dm` and proceed with the analyses. Save the formatted datasets in `1-data/2-final`.
+4. The Bangladesh geospatial data can be downloaded from:
 - GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
 - WorldPop population and wealth layers: https://www.worldpop.org/ (save to `1-data/0-worldpop`)
-- Rural/urban layer: `https://ghsl.jrc.ec.europa.eu` (rural/urban raster layer save to `1-data/1-temp`)
+- Rural/urban layer: `https://ghsl.jrc.ec.europa.eu` (rural/urban raster layer save to `1-data/2-final`)
+- Precipitation data used to create the heavy rainfall variable: `https://www.gloh2o.org/mswep/` (The formatted dataset is not included since it includes the GPS. However, the script on how to create the heavy rainfall indicator is available `4-supplementary/R/6_heavy_rain_ind)`
 - TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`)
 > Precipitation: `1-data/0-terraclim/ppt`
 > Maximum temperature: `1-data/0-terraclim/tmax`
