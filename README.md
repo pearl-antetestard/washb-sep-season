@@ -69,6 +69,7 @@ Maximum temperature: `1-data/0-terraclim/tmax`
 
 Soil moisture: `1-data/0-terraclim/soil`
 
+
 6. Create subdirectories to save the output for each analysis: effect modification analysis (`2-initial-analysis/output`), spatial analysis (`3-secondary-analysis/output`) and supplementary analysis (`4-supplementary/output`).
 
 N.B. The GPS of the study clusters are not available. Our IRB has deemed that sharing this information could potentially compromise participant privacy. However, this limitation only applies to the spatial analysis; the scripts are accessible, excluding the geographic location data. 
