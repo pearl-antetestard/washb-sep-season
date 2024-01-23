@@ -62,15 +62,15 @@ WorldPop population and wealth layers: https://www.worldpop.org/ (save to `1-dat
 
 Rural/urban layer: `https://ghsl.jrc.ec.europa.eu` (rural/urban raster layer save to `1-data/2-final`)
 
-Precipitation data used to create the heavy rainfall variable: `https://www.gloh2o.org/mswep/` (The formatted dataset is not included since it includes the GPS. However, the script on how to create the heavy rainfall indicator is available `4-supplementary/R/6_heavy_rain_ind)`
+Precipitation data used to create the heavy rainfall variable: `https://www.gloh2o.org/mswep/` (The formatted dataset is not included since it includes the GPS. However, the script on how to create the heavy rainfall indicator is available `4-supplementary/R/6_heavy_rain_ind.R)`.
 
-TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`)
+TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`). The formatted TerraClimate datasets are not included since they include the GPS. However, the script on how to create the TerraClimate indicators are available `4-supplementary/R/4_read_terraclim_data.R`)
 
-Precipitation: `1-data/0-terraclim/ppt`
+TerraClimate precipitation: `1-data/0-terraclim/ppt`
 
-Maximum temperature: `1-data/0-terraclim/tmax`
+TerraClimate maximum temperature: `1-data/0-terraclim/tmax`
 
-Soil moisture: `1-data/0-terraclim/soil`
+TerraClimate soil moisture: `1-data/0-terraclim/soil`
 
 
 N.B. The GPS of the study clusters are not available. Our IRB has deemed that sharing this information could potentially compromise participant privacy. However, this limitation only applies to the spatial analysis; the scripts are accessible, excluding the geographic location data. 
