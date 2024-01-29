@@ -137,7 +137,7 @@ PR_t1_wet_lower <- exp(logPR_t1_wet-1.96*logPR_se_t1_wet)
 PR_t1_wet_upper <- exp(logPR_t1_wet+1.96*logPR_se_t1_wet)
 dat_t1_wet <- data.frame(PR_t1_wet, PR_t1_wet_lower, PR_t1_wet_upper)
 dat_t1_wet$monsoon <- "heavy rain"
-dat_t1_wet$tertile <- "T1 \n(poorest)"
+dat_t1_wet$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(dat_t1_wet) <- c("PR", "lower", "upper", "rainfall", "Tertile")
 
 lincom_t2_wet <- c(0,1,0,0,0,1,0,1,0,0,1,0)
@@ -159,7 +159,7 @@ PR_t3_wet_lower <- exp(logPR_t3_wet-1.96*logPR_se_t3_wet)
 PR_t3_wet_upper <- exp(logPR_t3_wet+1.96*logPR_se_t3_wet)
 dat_t3_wet <- data.frame(PR_t3_wet, PR_t3_wet_lower, PR_t3_wet_upper)
 dat_t3_wet$monsoon <- "heavy rain"
-dat_t3_wet$tertile <- "T3 \n(wealthiest)"
+dat_t3_wet$tertile <- "T3 \n(highest socioeconomic position)"
 colnames(dat_t3_wet) <- c("PR", "lower", "upper", "rainfall", "Tertile")
 
 
@@ -180,7 +180,7 @@ PR_t1_dry_lower <- exp(logPR_t1_dry-1.96*logPR_t1_dry_se)
 PR_t1_dry_upper <- exp(logPR_t1_dry+1.96*logPR_t1_dry_se)
 dat_t1_dry <- data.frame(PR_t1_dry, PR_t1_dry_lower, PR_t1_dry_upper)
 dat_t1_dry$monsoon <- "no heavy rain"
-dat_t1_dry$tertile <- "T1 \n(poorest)"
+dat_t1_dry$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(dat_t1_dry) <- c("PR", "lower", "upper", "rainfall", "Tertile")
 
 lincom_t2_dry <- c(0,1,0,0,0,1,0,0,0,0,0,0)
@@ -202,7 +202,7 @@ PR_t3_dry_lower <- exp(logPR_t3_dry-1.96*logPR_se_t3_dry)
 PR_t3_dry_upper <- exp(logPR_t3_dry+1.96*logPR_se_t3_dry)
 dat_t3_dry <- data.frame(PR_t3_dry, PR_t3_dry_lower, PR_t3_dry_upper)
 dat_t3_dry$monsoon <- "no heavy rain"
-dat_t3_dry$tertile <- "T3 \n(wealthiest)"
+dat_t3_dry$tertile <- "T3 \n(highest socioeconomic position)"
 colnames(dat_t3_dry) <- c("PR", "lower", "upper", "rainfall", "Tertile")
 
 
@@ -273,7 +273,7 @@ PD_t1_wet_lower <- logPD_t1_wet-1.96*logPD_se_t1_wet
 PD_t1_wet_upper <- logPD_t1_wet+1.96*logPD_se_t1_wet
 dat_pd_t1_wet <- data.frame(logPD_t1_wet, PD_t1_wet_lower, PD_t1_wet_upper)
 dat_pd_t1_wet$monsoon <- "heavy rain"
-dat_pd_t1_wet$tertile <- "T1 \n(poorest)"
+dat_pd_t1_wet$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(dat_pd_t1_wet) <- c("PD", "lower", "upper", "rainfall", "Tertile")
 
 lincom_pd_t2_wet <- c(0,1,0,0,0,1,0,1,0,0,1,0)
@@ -293,7 +293,7 @@ PD_t3_wet_lower <- logPD_t3_wet-1.96*logPD_se_t3_wet
 PD_t3_wet_upper <- logPD_t3_wet+1.96*logPD_se_t3_wet
 dat_pd_t3_wet <- data.frame(logPD_t3_wet, PD_t3_wet_lower, PD_t3_wet_upper)
 dat_pd_t3_wet$monsoon <- "heavy rain"
-dat_pd_t3_wet$tertile <- "T3 \n(wealthiest)"
+dat_pd_t3_wet$tertile <- "T3 \n(highest socioeconomic position)"
 colnames(dat_pd_t3_wet) <- c("PD", "lower", "upper", "rainfall", "Tertile")
 
 # counter-checking by hand
@@ -313,7 +313,7 @@ PD_t1_dry_lower <- logPD_t1_dry-1.96*logPD_t1_dry_se
 PD_t1_dry_upper <- logPD_t1_dry+1.96*logPD_t1_dry_se
 dat_pd_t1_dry <- data.frame(logPD_t1_dry, PD_t1_dry_lower, PD_t1_dry_upper)
 dat_pd_t1_dry$monsoon <- "no heavy rain"
-dat_pd_t1_dry$tertile <- "T1 \n(poorest)"
+dat_pd_t1_dry$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(dat_pd_t1_dry) <- c("PD", "lower", "upper", "rainfall", "Tertile")
 
 lincom_pd_t2_dry <- c(0,1,0,0,0,1,0,0,0,0,0,0)
@@ -333,7 +333,7 @@ PD_t3_dry_lower <- logPD_t3_dry-1.96*logPD_se_t3_dry
 PD_t3_dry_upper <- logPD_t3_dry+1.96*logPD_se_t3_dry
 dat_pd_t3_dry <- data.frame(logPD_t3_dry, PD_t3_dry_lower, PD_t3_dry_upper)
 dat_pd_t3_dry$monsoon <- "no heavy rain"
-dat_pd_t3_dry$tertile <- "T3 \n(wealthiest)"
+dat_pd_t3_dry$tertile <- "T3 \n(highest socioeconomic position)"
 colnames(dat_pd_t3_dry) <- c("PD", "lower", "upper", "rainfall", "Tertile")
 
 # merging dataframes
@@ -368,7 +368,7 @@ prev_t1_rainy_control_upper <- log_prev_t1_rainy_control+1.96*logprev_t1_rainy_c
 prev_t1_rainy_control <- data.frame(log_prev_t1_rainy_control, prev_t1_rainy_control_lower, prev_t1_rainy_control_upper)
 prev_t1_rainy_control$monsoon <- "heavy rain"
 prev_t1_rainy_control$Arms <- "control"
-prev_t1_rainy_control$tertile <- "T1 \n(poorest)"
+prev_t1_rainy_control$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(prev_t1_rainy_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 #intervention
 lincom_prev_t1_rainy_interv <- c(1,0,0,0,1,0,0,0,0,0,0,0)
@@ -379,7 +379,7 @@ prev_t1_rainy_interv_upper <- log_prev_t1_rainy_interv+1.96*logprev_t1_rainy_int
 prev_t1_rainy_interv <- data.frame(log_prev_t1_rainy_interv, prev_t1_rainy_interv_lower, prev_t1_rainy_interv_upper)
 prev_t1_rainy_interv$monsoon <- "heavy rain"
 prev_t1_rainy_interv$Arms <- "intervention"
-prev_t1_rainy_interv$tertile <- "T1 \n(poorest)"
+prev_t1_rainy_interv$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(prev_t1_rainy_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 
 # Tertile 2
@@ -418,7 +418,7 @@ prev_t3_rainy_control_upper <- log_prev_t3_rainy_control+1.96*logprev_t3_rainy_c
 prev_t3_rainy_control <- data.frame(log_prev_t3_rainy_control, prev_t3_rainy_control_lower, prev_t3_rainy_control_upper)
 prev_t3_rainy_control$monsoon <- "heavy rain"
 prev_t3_rainy_control$Arms <- "control"
-prev_t3_rainy_control$tertile <- "T3 \n (wealthiest)"
+prev_t3_rainy_control$tertile <- "T3 \n (highest socioeconomic position)"
 colnames(prev_t3_rainy_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 # intervention
 lincom_prev_t3_rainy_interv <- c(1,0,0,1,1,0,0,0,0,1,0,0)
@@ -429,7 +429,7 @@ prev_t3_rainy_interv_upper <- log_prev_t3_rainy_interv+1.96*logprev_t3_rainy_int
 prev_t3_rainy_interv <- data.frame(log_prev_t3_rainy_interv, prev_t3_rainy_interv_lower, prev_t3_rainy_interv_upper)
 prev_t3_rainy_interv$monsoon <- "heavy rain"
 prev_t3_rainy_interv$Arms <- "intervention"
-prev_t3_rainy_interv$tertile <- "T3 \n (wealthiest)"
+prev_t3_rainy_interv$tertile <- "T3 \n (highest socioeconomic position)"
 colnames(prev_t3_rainy_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 
 
@@ -449,7 +449,7 @@ prev_t1_dry_control <- data.frame(log_prev_t1_dry_control, prev_t1_dry_control_l
                                   prev_t1_dry_control_upper)
 prev_t1_dry_control$monsoon <- "no heavy rain"
 prev_t1_dry_control$Arms <- "control"
-prev_t1_dry_control$tertile <- "T1 \n(poorest)"
+prev_t1_dry_control$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(prev_t1_dry_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 # intervention
 lincom_prev_t1_dry_interv <- c(1,0,0,0,0,0,0,0,0,0,0,0)
@@ -461,7 +461,7 @@ prev_t1_dry_interv <- data.frame(log_prev_t1_dry_interv, prev_t1_dry_interv_lowe
                                   prev_t1_dry_interv_upper)
 prev_t1_dry_interv$monsoon <- "no heavy rain"
 prev_t1_dry_interv$Arms <- "intervention"
-prev_t1_dry_interv$tertile <- "T1 \n(poorest)"
+prev_t1_dry_interv$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(prev_t1_dry_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 
 # Tertile 2
@@ -503,7 +503,7 @@ prev_t3_dry_control <- data.frame(log_prev_t3_dry_control, prev_t3_dry_control_l
                                   prev_t3_dry_control_upper)
 prev_t3_dry_control$monsoon <- "no heavy rain"
 prev_t3_dry_control$Arms <- "control"
-prev_t3_dry_control$tertile <- "T3 \n (wealthiest)"
+prev_t3_dry_control$tertile <- "T3 \n (highest socioeconomic position)"
 colnames(prev_t3_dry_control) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 # intervention
 lincom_prev_t3_dry_interv <- c(1,0,0,1,0,0,0,0,0,0,0,0)
@@ -515,7 +515,7 @@ prev_t3_dry_interv <- data.frame(log_prev_t3_dry_interv, prev_t3_dry_interv_lowe
                                   prev_t3_dry_interv_upper)
 prev_t3_dry_interv$monsoon <- "no heavy rain"
 prev_t3_dry_interv$Arms <- "intervention"
-prev_t3_dry_interv$tertile <- "T3 \n (wealthiest)"
+prev_t3_dry_interv$tertile <- "T3 \n (highest socioeconomic position)"
 colnames(prev_t3_dry_interv) <- c("prevalence", "lower", "upper", "rainfall", "Arms", "Tertile")
 
 
@@ -604,14 +604,14 @@ plot_prev_composite
 
 ```{r}
 
-ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
-                      "plot_effectmodsepmonsoon_glm.pdf"), height=210, width=180, units = "mm")
+#ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
+                      #"plot_effectmodsepmonsoon_glm.pdf"), height=210, width=180, units = "mm")
 
 #ggsave(plot_prev_composite, file = here::here("2-initial-analysis", "output",
                      # "plot_effectmodsepmonsoon_v2_poster.jpg"), height=8,width=5)
 
-#ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
-                      #"plot_effectmodseprainfall_glm.png"), height=6,width=4)
+ggsave(plot_prev_composite, file = here::here("4-supplementary", "output",
+                      "plot_effectmodseprainfall_glm.png"), height=6,width=5)
 
 ```
 
