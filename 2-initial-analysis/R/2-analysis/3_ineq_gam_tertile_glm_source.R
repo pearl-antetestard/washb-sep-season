@@ -111,7 +111,7 @@ PR_1_lower <- exp(logPR-1.96*logPR_se)
 PR_1_upper <- exp(logPR+1.96*logPR_se)
 #PR_1; PR_1_lower; PR_1_upper
 dat_1 <- data.frame(PR_1, PR_1_lower, PR_1_upper)
-dat_1$tertile <- "T1 \n(poorest)"
+dat_1$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(dat_1) <- c("PR", "lower", "upper", "Tertile")
 
 # PR for tertile 2
@@ -135,7 +135,7 @@ PR_3_lower <- exp(logPR_3-1.96*logPR_se_3)
 PR_3_upper <- exp(logPR_3+1.96*logPR_se_3)
 #PR_3; PR_3_lower; PR_3_upper
 dat_3 <- data.frame(PR_3, PR_3_lower, PR_3_upper)
-dat_3$tertile <- "T3 \n(wealthiest)"
+dat_3$tertile <- "T3 \n(highest socioeconomic position)"
 colnames(dat_3) <- c("PR", "lower", "upper", "Tertile")
 
 # merging dataframes
@@ -179,7 +179,7 @@ PD_1_lower <- logPD-1.96*logPD_se
 PD_1_upper <- logPD+1.96*logPD_se
 #PR_1; PR_1_lower; PR_1_upper
 dat_1_pd <- data.frame(logPD, PD_1_lower, PD_1_upper)
-dat_1_pd$tertile <- "T1 \n(poorest)"
+dat_1_pd$tertile <- "T1 \n(lowest socioeconomic position)"
 colnames(dat_1_pd) <- c("PD", "lower", "upper", "Tertile")
 
 # PD for tertile 2
@@ -201,7 +201,7 @@ PD_3_lower <- logPD_3-1.96*logPD_se_3
 PD_3_upper <- logPD_3+1.96*logPD_se_3
 #PR_3; PR_3_lower; PR_3_upper
 dat_3_pd <- data.frame(logPD_3, PD_3_lower, PD_3_upper)
-dat_3_pd$tertile <- "T3 \n(wealthiest)"
+dat_3_pd$tertile <- "T3 \n(highest socioeconomic position)"
 colnames(dat_3_pd) <- c("PD", "lower", "upper", "Tertile")
 
 # merging dataframes
@@ -220,7 +220,7 @@ logprev_t1_control_se = sqrt( t(lincom_prev_t1_control) %*% glmfit_robust_iden_v
 prev_t1_control_lower <- log_prev_t1_control-1.96*logprev_t1_control_se
 prev_t1_control_upper <- log_prev_t1_control+1.96*logprev_t1_control_se
 prev_t1_control <- data.frame(log_prev_t1_control, prev_t1_control_lower, prev_t1_control_upper)
-prev_t1_control$tertile <- "T1 \n(poorest)"
+prev_t1_control$tertile <- "T1 \n(lowest socioeconomic position)"
 prev_t1_control$Arms <- "control"
 colnames(prev_t1_control) <- c("prevalence", "lower", "upper", "Tertile", "Arms")
 # intervention
@@ -230,7 +230,7 @@ logprev_t1_interv_se = sqrt( t(lincom_prev_t1_interv) %*% glmfit_robust_iden_vco
 prev_t1_interv_lower <- log_prev_t1_interv-1.96*logprev_t1_interv_se
 prev_t1_interv_upper <- log_prev_t1_interv+1.96*logprev_t1_interv_se
 prev_t1_interv <- data.frame(log_prev_t1_interv, prev_t1_interv_lower, prev_t1_interv_upper)
-prev_t1_interv$tertile <- "T1 \n(poorest)"
+prev_t1_interv$tertile <- "T1 \n(lowest socioeconomic position)"
 prev_t1_interv$Arms <- "intervention"
 colnames(prev_t1_interv) <- c("prevalence", "lower", "upper", "Tertile", "Arms")
 
@@ -270,7 +270,7 @@ logprev_t3_control_se = sqrt( t(lincom_prev_t3_control) %*% glmfit_robust_iden_v
 prev_t3_control_lower <- log_prev_t3_control-1.96*logprev_t3_control_se
 prev_t3_control_upper <- log_prev_t3_control+1.96*logprev_t3_control_se
 prev_t3_control <- data.frame(log_prev_t3_control, prev_t3_control_lower, prev_t3_control_upper)
-prev_t3_control$tertile <- "T3 \n(wealthiest)"
+prev_t3_control$tertile <- "T3 \n(highest socioeconomic position)"
 prev_t3_control$Arms <- "control"
 colnames(prev_t3_control) <- c("prevalence", "lower", "upper", "Tertile", "Arms")
 # intervention
@@ -280,7 +280,7 @@ logprev_t3_interv_se = sqrt( t(lincom_prev_t3_interv) %*% glmfit_robust_iden_vco
 prev_t3_interv_lower <- log_prev_t3_interv-1.96*logprev_t3_interv_se
 prev_t3_interv_upper <- log_prev_t3_interv+1.96*logprev_t3_interv_se
 prev_t3_interv <- data.frame(log_prev_t3_interv, prev_t3_interv_lower, prev_t3_interv_upper)
-prev_t3_interv$tertile <- "T3 \n(wealthiest)"
+prev_t3_interv$tertile <- "T3 \n(highest socioeconomic position)"
 prev_t3_interv$Arms <- "intervention"
 colnames(prev_t3_interv) <- c("prevalence", "lower", "upper", "Tertile", "Arms")
 
