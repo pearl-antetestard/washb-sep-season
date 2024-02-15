@@ -50,19 +50,17 @@ To run the analyses:
 
 3. Create subdirectories to save the output for each analysis: effect modification analysis (`2-initial-analysis/output`), spatial analysis (`3-secondary-analysis/output`) and supplementary analysis (`4-supplementary/output`).
 
-4. If you want to reproduce the formatted dataset that contains the created wealth and season variables, you can download the public raw datasets (`washb-bangladesh-enrol-public.csv`, `washb-bangladesh-tr-public.csv` and `washb-bangladesh-diar-public.csv`) from the WASH Benefits Bangladesh trial from https://osf.io/wvyn4/. Then, save them in the subdirectory `1-data/0-untouched`.
+4. Save the public raw datasets of the WASH Benefits Bangladesh trial (https://osf.io/wvyn4/) in the subdirectory `1-data/0-untouched`.
 
-5. Otherwise, you can download the formatted datasets directly from https://osf.io/xwndg/ to skip data management `1-dm` and proceed with the analyses. Save the formatted datasets in `1-data/2-final`.
+5. Join and format datasets directly using scripts in the `1-dm` folder. Save formatted datasets in `1-data/2-final`.
 
 6. The Bangladesh geospatial data can be downloaded from:
 
 GADM shapefiles: https://gadm.org/ (save to `1-data/0-gadm`)
 
-WorldPop population and wealth layers: https://www.worldpop.org/ (save to `1-data/0-worldpop`)
+WorldPop population and wealth layers with GPS: https://www.worldpop.org/ (save to `1-data/0-worldpop`)
 
-Rural/urban layer: `https://ghsl.jrc.ec.europa.eu` (rural/urban raster layer save to `1-data/2-final`)
-
-Precipitation data used to create the heavy rainfall variable: `https://www.gloh2o.org/mswep/` (The formatted dataset is not included since it includes the GPS. However, the script on how to create the heavy rainfall indicator is available `4-supplementary/R/6_heavy_rain_ind.R)`.
+Precipitation data with GPS used to create the heavy rainfall variable: `https://www.gloh2o.org/mswep/` (The formatted dataset in the OSF does not include GPS. However, the script on how to create the heavy rainfall indicator is available `4-supplementary/R/6_heavy_rain_ind.R)`.
 
 TerraClimate data: https://www.climatologylab.org/terraclimate.html (save to `1-data/0-terraclim`). The formatted TerraClimate datasets are not included since they include the GPS. However, the script on how to create the TerraClimate indicators are available `4-supplementary/R/4_read_terraclim_data.R`)
 
